@@ -8,7 +8,7 @@
 # Most parts of this file come from podman-generate-systemd.
 #
 [Unit]
-Description=Podman goauthentik server
+Description=Podman goauthentik app
 BindsTo=goauthentik.service
 After=goauthentik-redis.service goauthentik-pgsql.service
 [Service]
