@@ -13,6 +13,60 @@ import agent
 # If parsing fails, output everything to stderr
 data = json.load(sys.stdin)
 
+
+# PAperless CSRF settings
+host = data.get("host", "")
+PAPERLESS_URL = "https://"+host
+
+
+# Db Config
+
+POSTGRES_DB = data.get("POSTGRES_DB","goauthentik")
+POSTGRES_USER = data.get("POSTGRES_USER","goauthentik")
+POSTGRES_PASSWORD = data.get("POSTGRES_PASSWORD","GoAuthentik$$")
+
+db_config = {
+    
+    "POSTGRES_ROOT_HOST": "localhost",
+    "POSTGRES_DATABASE": POSTGRES_DB,
+    "POSTGRES_USER": POSTGRES_USER,
+    "POSTGRES_PASSWORD": POSTGRES_PASSWORD,
+    
+}
+agent.write_envfile('database.env', db_config)
+
+# Set Authentik Email Configuration
+# SMTP Host Emails are sent to
+AUTHENTIK_EMAIL__HOST=data.get("AUTHENTIK_EMAIL__HOST", "localhost")
+AUTHENTIK_EMAIL__PORT=data.get("AUTHENTIK_EMAIL__PORT", 25)
+# Optionally authenticate (don't add quotation marks to your password)
+AUTHENTIK_EMAIL__USERNAME=data.get("AUTHENTIK_EMAIL__USERNAME", "")
+AUTHENTIK_EMAIL__PASSWORD=data.get("AUTHENTIK_EMAIL__PASSWORD", "")
+# Use StartTLS
+AUTHENTIK_EMAIL__USE_TLS=data.get("AUTHENTIK_EMAIL__USE_TLS", false)
+# Use SSL
+AUTHENTIK_EMAIL__USE_SSL=data.get("AUTHENTIK_EMAIL__USE_SSL", false)
+AUTHENTIK_EMAIL__TIMEOUT=data.get("AUTHENTIK_EMAIL__TIMEOUT", 25)
+# Email address authentik will send from, should have a correct @domain
+AUTHENTIK_EMAIL__FROM=data.get("AUTHENTIK_EMAIL__FROM", "authentik@localhost")
+
+#Docker Expose Ports 
+COMPOSE_PORT_HTTP=data.get("COMPOSE_PORT_HTTP", 80)
+COMPOSE_PORT_HTTPS=data.get("COMPOSE_PORT_HTTPS", 443)
+
+# Setup configuration from user input.
+agent.set_env("AUTHENTIK_EMAIL__HOST", AUTHENTIK_EMAIL__HOST)
+agent.set_env("AUTHENTIK_EMAIL__PORT", AUTHENTIK_EMAIL__PORT)
+agent.set_env("AUTHENTIK_EMAIL__USERNAME", AUTHENTIK_EMAIL__USERNAME)
+agent.set_env("AUTHENTIK_EMAIL__PASSWORD", AUTHENTIK_EMAIL__PASSWORD)
+agent.set_env("AUTHENTIK_EMAIL__USE_TLS", AUTHENTIK_EMAIL__USE_TLS)
+agent.set_env("AUTHENTIK_EMAIL__TIMEOUT", AUTHENTIK_EMAIL__TIMEOUT)
+agent.set_env("AUTHENTIK_EMAIL__FROM", AUTHENTIK_EMAIL__FROM)
+agent.set_env("COMPOSE_PORT_HTTP", COMPOSE_PORT_HTTP)
+agent.set_env("COMPOSE_PORT_HTTPS", COMPOSE_PORT_HTTPS)
+#paperless CSRF settings
+# agent.set_env("PAPERLESS_URL", PAPERLESS_URL)
+
 #This is specific to you module, so you need to change it accordingly.
 # we read a json stdin {"vars1":true, "var2":"foo", "vars3": 3} and we writ it to .config/state/environment
 # Upper case to set environment variable and minor case to read from stdin
@@ -30,4 +84,4 @@ data = json.load(sys.stdin)
 
 # Make sure everything is saved inside the environment file
 # just before starting systemd unit
-#agent.dump_env()
+agent.dump_env()

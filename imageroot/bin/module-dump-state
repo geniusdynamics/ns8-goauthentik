@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2022 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+set -e
+
+echo "Dumping goauthentik postgres database"
+podman exec goauthentik-pgsql pg_dump -U goauthentik --format=c  goauthentik > goauthentik.pg_dump

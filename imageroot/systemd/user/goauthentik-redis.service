@@ -1,0 +1,25 @@
+[Unit]
+Description=Podman goauthentik-redis.service
+BindsTo=goauthentik.service
+After=goauthentik-pgsql.service
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n REDIS_IMAGE=docker.io/library/redis:7
+EnvironmentFile=%S/state/environment
+Restart=always
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/goauthentik-redis.pid %t/goauthentik-redis.ctr-id
+ExecStart=/usr/bin/podman run --conmon-pidfile %t/goauthentik-redis.pid \
+    --cidfile %t/goauthentik-redis.ctr-id \
+    --cgroups=no-conmon \
+    --pod-id-file %t/ns8-goauthentik-ngx.pod-id --replace -d \
+    --name goauthentik-redis \
+    -v goauthentik-redis-data:/data \
+    ${REDIS_IMAGE} --appendonly yes
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik-redis.ctr-id -t 10
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik-redis.ctr-id
+PIDFile=%t/goauthentik-redis.pid
+Type=forking
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,24 @@
+[Unit]
+Description=Podman goauthentik-pgsql.service
+BindsTo=goauthentik.service
+Before=goauthentik-redis.service
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%S/state/environment
+Restart=always
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/goauthentik-pgsql.pid %t/goauthentik-pgsql.ctr-id
+ExecStartPre=/bin/mkdir -p %S/state/restore/
+ExecStart=/usr/bin/podman run --conmon-pidfile %t/goauthentik-pgsql.pid \
+    --cidfile %t/goauthentik-pgsql.ctr-id --cgroups=no-conmon --pod-id-file %t/ns8-goauthentik.pod-id \
+    --replace -d --name goauthentik-pgsql --env-file=%S/state/database.env \
+    --volume postgres-data:/var/lib/postgresql/data:Z \
+    ${POSTGRES_IMAGE}
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik-pgsql.ctr-id -t 10
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik-pgsql.ctr-id
+PIDFile=%t/goauthentik-pgsql.pid
+Type=forking
+
+[Install]
+WantedBy=default.target
