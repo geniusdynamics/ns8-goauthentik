@@ -38,7 +38,7 @@ ExecStart=/usr/bin/podman run \
     --volume=goauthentik-certs:/certs \
     --volume=custom-templates:custom-templates \
     --volume=goauthentik-sock /var/run/docker.sock:/var/run/docker.sock
-    ${SERVER_IMAGE}
+    ${AUTHENTIK_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik.ctr-id
 PIDFile=%t/goauthentik.pid
