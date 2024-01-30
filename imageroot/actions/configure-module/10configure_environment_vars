@@ -13,12 +13,6 @@ import agent
 # If parsing fails, output everything to stderr
 data = json.load(sys.stdin)
 
-
-# PAperless CSRF settings
-host = data.get("host", "")
-PAPERLESS_URL = "https://"+host
-
-
 # Db Config
 
 POSTGRES_DB = data.get("POSTGRES_DB","goauthentik")
