@@ -11,7 +11,7 @@ TimeoutStopSec=70
 ExecStartPre=/bin/rm -f %t/goauthentik-pgsql.pid %t/goauthentik-pgsql.ctr-id
 ExecStartPre=/bin/mkdir -p %S/state/restore/
 ExecStart=/usr/bin/podman run --conmon-pidfile %t/goauthentik-pgsql.pid \
-    --cidfile %t/goauthentik-pgsql.ctr-id --cgroups=no-conmon --pod-id-file %t/ns8-goauthentik.pod-id \
+    --cidfile %t/goauthentik-pgsql.ctr-id --cgroups=no-conmon --pod-id-file %t/goauthentik.pod-id \
     --replace -d --name goauthentik-pgsql --env-file=%S/state/database.env \
     --volume postgres-data:/var/lib/postgresql/data:Z \
     ${POSTGRES_IMAGE}
