@@ -16,7 +16,7 @@ data = json.load(sys.stdin)
 # Setup default values
 random_key = secrets.token_hex(16)
 AUTHENTIK_SECRET_KEY = data.get("AUTHENTIK_SECRET_KEY",random_key)
-
+AUTHENTIK_ERROR_REPORTING__ENABLED = True
 # Talk with agent using file descriptor.
 
 agent.set_env("AUTHENTIK_SECRET_KEY", AUTHENTIK_SECRET_KEY)
