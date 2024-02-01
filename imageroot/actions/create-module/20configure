@@ -10,7 +10,10 @@ import sys
 # agent is a NethServer library which provides function to communicate with the agent
 import agent
 import secrets
+import stat
 
+# Make the file executable by everyone
+os.chmod(__file__, stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 data = json.load(sys.stdin)
 
 # Setup default values
