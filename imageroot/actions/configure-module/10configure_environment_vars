@@ -20,12 +20,10 @@ POSTGRES_USER = data.get("POSTGRES_USER","goauthentik")
 POSTGRES_PASSWORD = data.get("POSTGRES_PASSWORD","GoAuthentik$$")
 
 db_config = {
-    
     "POSTGRES_ROOT_HOST": "localhost",
     "POSTGRES_DATABASE": POSTGRES_DB,
     "POSTGRES_USER": POSTGRES_USER,
     "POSTGRES_PASSWORD": POSTGRES_PASSWORD,
-    
 }
 agent.write_envfile('database.env', db_config)
 
