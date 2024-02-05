@@ -21,6 +21,7 @@ ExecStartPre=/bin/rm -f %t/goauthentik.pid %t/goauthentik.ctr-id
 ExecStartPre=/usr/local/bin/runagent discover-smarthost
 ExecStart=/usr/bin/podman run \
     --detach \
+    --user root \
     --conmon-pidfile=%t/goauthentik.pid \
     --pod-id-file=%t/goauthentik.pod-id \
     --cidfile=%t/goauthentik.ctr-id \
@@ -34,6 +35,7 @@ ExecStart=/usr/bin/podman run \
     --env=AUTHENTIK_POSTGRESQL__NAME=${POSTGRES_DATABASE} \
     --env=AUTHENTIK_POSTGRESQL__USER=${POSTGRES_USER} \
     --env=AUTHENTIK_POSTGRESQL__PASSWORD=${POSTGRES_PASSWORD} \
+    --env=AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY} \
     --volume=goauthentik-media:/media \
     --volume=goauthentik-certs:/certs \
     --volume=custom-templates:/templates \
