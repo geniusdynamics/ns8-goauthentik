@@ -10,7 +10,7 @@
 [Unit]
 Description=Podman goauthentik app
 BindsTo=goauthentik.service
-After=goauthentik-pgsql.service goauthentik-redis.service
+After=goauthentik-redis.service goauthentik-pgsql.service
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
 EnvironmentFile=%S/state/environment
@@ -35,7 +35,7 @@ ExecStart=/usr/bin/podman run \
     --env=AUTHENTIK_POSTGRESQL__USER=${POSTGRES_USER} \
     --env=AUTHENTIK_POSTGRESQL__PASSWORD=${POSTGRES_PASSWORD} \
     --volume=goauthentik-media:/media \
-    --volume=custom-templates:custom-templates \
+    --volume=custom-templates:/templates \
     ${AUTHENTIK_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik.ctr-id
