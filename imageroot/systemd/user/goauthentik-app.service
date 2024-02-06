@@ -24,7 +24,7 @@ ExecStartPre=-runagent expand-configuration
 ExecStartPre=-runagent install-certificate
 ExecStartPre=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
 ExecStartPre=bash -c "while [ ! -f certificates/dh.pem ]; do sleep 1; done"
-ExecStartPost=bash -c "while ! /usr/bin/podman exec goauthentik bin/goauthentikctl status; do sleep 1 ; done"
+# ExecStartPost=bash -c "while ! /usr/bin/podman exec goauthentik bin/goauthentikctl status; do sleep 1 ; done"
 ExecStart=/usr/bin/podman run \
     --detach \
     --user root \
@@ -52,7 +52,7 @@ ExecReload=-runagent expand-configuration
 ExecReload=-runagent install-certificate
 ExecReload=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
 ExecReload=bash -c "while [ ! -f certificates/dh.pem ]; do sleep 1; done"
-ExecReload=bash -c "while ! /usr/bin/podman exec goauthentik bin/goauthentikctl status; do sleep 1 ; done"
+# ExecReload=bash -c "while ! /usr/bin/podman exec goauthentik bin/goauthentikctl status; do sleep 1 ; done"
 ExecReload=runagent /usr/bin/podman exec \
     --env-file=environment \
     --env-file=discovery.env \
