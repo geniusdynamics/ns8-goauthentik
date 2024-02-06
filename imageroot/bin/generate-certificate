@@ -21,7 +21,7 @@ umask 022 # 644
 openssl req -nodes -newkey rsa:2048 \
     -keyout ${keytmp} \
     -out ${csrtmp} -new  \
-    -subj "/C=IT/ST=Italy/L=Pesaro/O=NethServer/OU=Authentik/CN=${HOST}/subjectAltName=pubsub.${HOST},upload.${HOST},conference.${HOST}"
+    -subj "/C=IT/ST=Italy/L=Pesaro/O=NethServer/OU=Authentik/CN=${HOST}"
 
 # we selfsign the certificate
 openssl x509 -req -sha256 -days 3650 \
@@ -31,3 +31,5 @@ openssl x509 -req -sha256 -days 3650 \
 
 # we want only one pem file all included
 cat ${keytmp} ${certtmp} > certificates/goauthentik.pem
+
+# -subj "/C=IT/ST=Italy/L=Pesaro/O=NethServer/OU=Authentik/CN=${HOST}/subjectAltName=pubsub.${HOST},upload.${HOST},conference.${HOST}"
