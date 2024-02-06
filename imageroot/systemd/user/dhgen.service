@@ -1,6 +1,6 @@
 [Unit]
 Description=Diffie-Hellman group generator
-Requisite=goauthentik.service
+Requisite=goauthentik-app.service
 
 [Service]
 Type=oneshot
