@@ -7,7 +7,7 @@
 
 set -e
 
-if [[ -z "${TRAEFIK_HOSTNAME}" ]]; then
+if [[ -z "${TRAEFIK_HOST}" ]]; then
     exit 3 # Module is not fully configured, abort execution.
 fi
 
@@ -24,11 +24,11 @@ export REDIS_USER=default
 
 mtraefik=$(redis-exec GET "node/${NODE_ID}/default_instance/traefik")
 
-redis-exec HGET "module/${mtraefik}/certificate/${TRAEFIK_HOSTNAME}" key | base64 -d > server.key
-redis-exec HGET "module/${mtraefik}/certificate/${TRAEFIK_HOSTNAME}" cert | base64 -d > server.pem
+redis-exec HGET "module/${mtraefik}/certificate/${TRAEFIK_HOST}" key | base64 -d > server.key
+redis-exec HGET "module/${mtraefik}/certificate/${TRAEFIK_HOST}" cert | base64 -d > server.pem
 
 if [[ $(head -c 5 server.key) != '-----' || $(head -c 5 server.pem) != '-----' ]]; then
-    echo "[WARNING] ${service_image} certificate for ${TRAEFIK_HOSTNAME} not found" 1>&2
+    echo "[WARNING] ${service_image} certificate for ${TRAEFIK_HOST} not found" 1>&2
     exit 2
 fi
 

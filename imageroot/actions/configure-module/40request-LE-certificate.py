@@ -12,7 +12,7 @@ import os
 
 
 agent_id = agent.resolve_agent_id('traefik@node')
-hostname = os.environ['AUTHENTIK_HOSTNAME']
+host = os.environ['TRAEFIK_HOST']
 le = True if os.environ['TRAEFIK_LETS_ENCRYPT'] == "True" else False
 
 if le:
@@ -20,7 +20,7 @@ if le:
         agent_id=agent_id, # e.g. module/traefik1
         action='set-certificate',
         data={
-            "fqdn":hostname,
+            "fqdn":host,
             "sync": True,
         },
         parent='', # Run as a root task
