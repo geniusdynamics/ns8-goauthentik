@@ -4,7 +4,7 @@ Requisite=goauthentik.service
 
 [Service]
 Type=oneshot
-ExecStart=runagent generate-dhpem
+ExecStart=-runagent generate-dhpem
 ExecStartPost=/usr/bin/podman  cp certificates/dh.pem goauthentik:conf/dh.pem
 WorkingDirectory=%S/state
 SyslogIdentifier=%u/%N
