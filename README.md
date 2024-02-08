@@ -11,7 +11,7 @@ Instantiate the module with:
 The output of the command will return the instance name.
 Output example:
 
-    {"module_id": "goauthentik1", "image_name": "goauthentik", "image_url": "ghcr.io/nethserver/goauthentik:latest"}
+    {"module_id": "goauthentik1", "image_name": "goauthentik", "image_url": "ghcr.io/compgeniuses/goauthentik:latest"}
 
 ## Configure
 
