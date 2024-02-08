@@ -24,7 +24,7 @@ ExecStartPre=-runagent expand-configuration
 ExecStartPre=-runagent install-certificate
 ExecStartPre=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
 ExecStartPre=bash -c "while [ ! -f certificates/dh.pem ]; do sleep 1; done"
-ExecStartPost=/usr/bin/podman exec goauthentik-app ak import_certificate --certificate /certs/dh.pem --private-key  /certs/goauthentik.pem --name dh
+ExecStartPost=/usr/bin/podman exec goauthentik-app ak import_certificate --certificate /certs/goauthentik.pem --private-key  /certs/dh.pem --name goauthentik
 # ExecStartPost=/usr/bin/timeout 30 bash -c 'until podman exec %N /lifecycle/ak healthcheck; do sleep 1; done'
 ExecStart=/usr/bin/podman run \
     --detach \
@@ -53,7 +53,7 @@ ExecReload=mkdir -vp config
 ExecReload=-runagent install-certificate
 ExecReload=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
 ExecReload=bash -c "while [ ! -f certificates/dh.pem ]; do sleep 1; done"
-ExecReload=/usr/bin/podman exec goauthentik-app ak import_certificate --certificate /certs/dh.pem --private-key  /certs/goauthentik.pem --name dh
+ExecReload=/usr/bin/podman exec goauthentik-app ak import_certificate --certificate /certs/goauthentik.pem --private-key  /certs/dh.pem --name goauthentik
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik.ctr-id
 PIDFile=%t/goauthentik.pid
