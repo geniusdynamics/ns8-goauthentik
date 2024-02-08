@@ -10,7 +10,8 @@
 [Unit]
 Description=Podman goauthentik app
 BindsTo=goauthentik.service
-After=goauthentik-redis.service goauthentik-pgsql.service
+After=goauthentik-redis.service goauthentik-pgsql.service dhgen.service
+
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
 EnvironmentFile=%S/state/environment
