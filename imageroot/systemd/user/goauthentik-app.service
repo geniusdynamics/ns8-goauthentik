@@ -53,6 +53,7 @@ ExecReload=-runagent expand-configuration
 ExecReload=-runagent install-certificate
 ExecReload=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
 ExecReload=bash -c "while [ ! -f certificates/dh.pem ]; do sleep 1; done"
+ExecReload=/usr/bin/podman exec goauthentik-app ak import_certificate --certificate /certs/dh.pem --name dh
 # ExecReload=bash -c "while ! /usr/bin/podman exec goauthentik bin/goauthentikctl status; do sleep 1 ; done"
 ExecReload=runagent /usr/bin/podman exec \
     --env-file=environment \
