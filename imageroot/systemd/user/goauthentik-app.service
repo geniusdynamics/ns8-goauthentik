@@ -25,8 +25,7 @@ ExecStartPre=-runagent install-certificate
 ExecStartPre=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
 ExecStartPre=bash -c "while [ ! -f certificates/dh.pem ]; do sleep 1; done"
 ExecStartPost=/usr/bin/podman exec goauthentik-app ak import_certificate --certificate /certs/dh.pem --private-key  /certs/goauthentik.pem --name dh
-## The worker container can be monitored by running /lifecycle/ak healthcheck in the worker container. This will ping the worker and ensure it can communicate with redis as required.
-ExecStartPost=/usr/bin/timeout 30 bash -c 'until podman exec %N /lifecycle/ak healthcheck; do sleep 1; done'
+# ExecStartPost=/usr/bin/timeout 30 bash -c 'until podman exec %N /lifecycle/ak healthcheck; do sleep 1; done'
 ExecStart=/usr/bin/podman run \
     --detach \
     --user root \
