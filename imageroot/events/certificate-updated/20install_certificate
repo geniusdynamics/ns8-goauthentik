@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-if systemctl --user -q is-active goauthentik.service; then
+if systemctl --user -q is-active goauthentik-app; then
     # install-certificate is triggered before start/reload
-    systemctl --user -T try-reload-or-restart goauthentik.service
+    systemctl --user -T try-reload-or-restart goauthentik-app
 fi
