@@ -55,6 +55,10 @@ ExecReload=-runagent install-certificate
 ExecReload=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
 ExecReload=bash -c "while [ ! -f certificates/dh.pem ]; do sleep 1; done"
 ExecReload=/usr/bin/podman exec goauthentik-app ak import_certificate --certificate /certs/goauthentik.pem --private-key  /certs/dh.pem --name goauthentik
+ExecReload=runagent /usr/bin/podman exec \
+    --env-file=environment \
+    --env-file=discovery.env \
+    %N bin/goauthentikctl reload_config
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik.ctr-id
 PIDFile=%t/goauthentik.pid
