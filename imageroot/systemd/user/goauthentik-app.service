@@ -23,7 +23,7 @@ ExecStartPre=/usr/local/bin/runagent discover-smarthost
 ExecStartPre=mkdir -vp config
 ExecStartPre=-runagent install-certificate
 #ExecStartPre=/usr/bin/timeout 30 bash -c "while [ -f certs/key.pem ] && [ -f certs/cert.pem ]; do sleep 1; done" || exit 1
-ExecStartPost=/usr/bin/timeout 30 bash -c 'until podman exec %N /lifecycle/ak healthcheck; do sleep 1; done'
+#ExecStartPost=/usr/bin/timeout 30 bash -c 'until podman exec %N /lifecycle/ak healthcheck; do sleep 1; done'
 ExecStart=/usr/bin/podman run \
     --detach \
     --user root \
