@@ -19,11 +19,11 @@ WorkingDirectory=%S/state
 Restart=always
 ExecStartPre=/bin/rm -f %t/goauthentik.pid %t/goauthentik.ctr-id
 ExecStartPre=/usr/local/bin/runagent discover-smarthost
-ExecStartPre=mkdir -vp config
-ExecStartPre=-runagent expand-configuration
-ExecStartPre=-runagent install-certificate
-ExecStartPre=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
-ExecStartPre=bash -c "while [ ! -f certificates/dh.pem ]; do sleep 1; done"
+#ExecStartPre=mkdir -vp config
+#ExecStartPre=-runagent expand-configuration
+#ExecStartPre=-runagent install-certificate
+#ExecStartPre=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
+#ExecStartPre=bash -c "while [ ! -f certificates/dh.pem ]; do sleep 1; done"
 # ExecStartPost=bash -c "while ! /usr/bin/podman exec goauthentik bin/goauthentikctl status; do sleep 1 ; done"
 ExecStart=/usr/bin/podman run \
     --detach \
