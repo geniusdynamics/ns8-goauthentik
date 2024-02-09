@@ -6,8 +6,6 @@ Requisite=goauthentik.service
 [Service]
 Type=oneshot
 ExecStart=runagent generate-dhpem
-ExecStartPost=/usr/bin/podman cp certificates/*.pem goauthentik-app:certs/
-ExecStartPost=/usr/bin/podman exec goauthentik-app ak import_certificate --certificate /certs/cert.pem --private-key  /certs/key.pem --name goauthentik || { logger -p user.err "Failed to import certificate: $?" ; exit 1 }
 #ExecStartPost=/usr/bin/podman cp "certificates/goauthentik.pem certificates/key.pem certificates/cert.pem certificates/dh.pem" goauthentik-app:certs/
 #ExecStartPost=/usr/bin/podman  cp certificates/goauthentik.pem goauthentik-app:certs/goauthentik.pem
 #ExecStartPost=/usr/bin/podman  cp certificates/key.pem goauthentik-app:certs/key.pem

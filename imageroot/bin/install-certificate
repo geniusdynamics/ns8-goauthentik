@@ -39,3 +39,24 @@ cat server.key server.pem > ${AGENT_STATE_DIR}/certificates/goauthentik.pem
 cp server.key ${AGENT_STATE_DIR}/certificates/key.pem
 cp server.pem ${AGENT_STATE_DIR}/certificates/cert.pem
 # Important! preserve import-certificate exit code
+
+# Copy server.key and server.pem into the goauthentik-app pod's certs folder
+podman cp ${AGENT_STATE_DIR}/certificates/key.pem goauthentik-app:/certs/key.pem || true
+podman cp ${AGENT_STATE_DIR}/certificates/cert.pem goauthentik-app:/certs/cert.pem || true
+
+# Check for both files in the container; log warning if either missing, exit if both missing
+if ! podman exec goauthentik-app sh -c '[ -f /certs/key.pem ] && [ -f /certs/cert.pem ]'; then
+  if ! podman exec goauthentik-app sh -c '[ -f /certs/key.pem ] || [ -f /certs/cert.pem ]'; then
+      logger -p user.err "Error: Both certificate files missing in container."
+      exit 1
+  else
+      logger -p user.err "Warning: One certificate file missing in container."
+  fi
+fi
+
+# Proceed with the import command
+/usr/bin/podman exec goauthentik-app ak import_certificate \
+  --certificate /certs/cert.pem \
+  --private-key /certs/key.pem \
+  --name goauthentik \
+  || { logger -p user.err "Failed to import certificate: $?" ; exit 1 }
