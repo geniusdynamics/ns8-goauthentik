@@ -35,4 +35,7 @@ fi
 # we want only one pem file all included
 cat server.key server.pem > ${AGENT_STATE_DIR}/certificates/goauthentik.pem
 
+# Inlcluding Seprate Files
+cp server.key ${AGENT_STATE_DIR}/certificates/key.pem
+cp server.pem ${AGENT_STATE_DIR}/certificates/cert.pem
 # Important! preserve import-certificate exit code
