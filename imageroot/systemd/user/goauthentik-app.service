@@ -43,7 +43,7 @@ ExecStart=/usr/bin/podman run \
     --env=AUTHENTIK_POSTGRESQL__PASSWORD=${POSTGRES_PASSWORD} \
     --env=AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY} \
     --volume=goauthentik-media:/media \
-    --volume=goauthentik-certs:/home/goauthentik/certificates:Z \
+    --volume=goauthentik-certs:/certs \
     --volume=custom-templates:/templates \
     --volume=goauthentik-sock:/var/run/docker.sock \
     ${AUTHENTIK_IMAGE}
