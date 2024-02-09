@@ -48,9 +48,9 @@ ExecStart=/usr/bin/podman run \
     ${AUTHENTIK_IMAGE}
 ExecReload=mkdir -vp config
 ExecReload=-runagent install-certificate
-ExecReload=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
-ExecReload=bash -c "while [ ! -f certificates/dh.pem ]; do sleep 1; done"
-ExecReload=/usr/bin/podman exec goauthentik-app ak import_certificate --certificate /certs/cert.pem --private-key  /certs/key.pem --name goauthentik
+#ExecReload=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
+#ExecReload=bash -c "while [ ! -f certificates/dh.pem ]; do sleep 1; done"
+#ExecReload=/usr/bin/podman exec goauthentik-app ak import_certificate --certificate /certs/cert.pem --private-key  /certs/key.pem --name goauthentik
 ExecReload=runagent /usr/bin/podman exec \
     --env-file=environment \
     --env-file=discovery.env \
