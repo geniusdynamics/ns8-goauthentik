@@ -6,12 +6,12 @@ authentik is an open-source Identity Provider focused on flexibility and versati
 
 Instantiate the module with:
 
-    add-module ghcr.io/nethserver/goauthentik:latest 1
+    add-module ghcr.io/compgeniuses/goauthentik:latest 1
 
 The output of the command will return the instance name.
 Output example:
 
-    {"module_id": "goauthentik1", "image_name": "goauthentik", "image_url": "ghcr.io/nethserver/goauthentik:latest"}
+    {"module_id": "goauthentik1", "image_name": "goauthentik", "image_url": "ghcr.io/compgeniuses/goauthentik:latest"}
 
 ## Configure
 

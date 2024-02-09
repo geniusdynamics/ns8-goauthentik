@@ -1,10 +1,11 @@
 [Unit]
 Description=Diffie-Hellman group generator
 Requisite=goauthentik.service
+Before=goauthentik-app.service
 
 [Service]
 Type=oneshot
 ExecStart=runagent generate-dhpem
-ExecStartPost=/usr/bin/podman  cp certificates/dh.pem goauthentik:conf/dh.pem
+ExecStartPost=/usr/bin/podman  cp certificates/dh.pem goauthentik-app:certs/dh.pem
 WorkingDirectory=%S/state
 SyslogIdentifier=%u/%N
