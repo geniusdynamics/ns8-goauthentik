@@ -46,8 +46,8 @@ podman exec goauthentik-app sh -c "cp /certificates/cert.pem /certs/cert.pem" ||
 
 
 # Check for both files in the container; log warning if either missing, exit if both missing
-if ! podman exec goauthentik-app sh -c '[ -f /certs/key.pem ] && [ -f /certs/cert.pem ]'; then
-  if ! podman exec goauthentik-app sh -c '[ -f /certs/key.pem ] || [ -f /certs/cert.pem ]'; then
+if ! /usr/bin/podman exec goauthentik-app sh -c '[ -f /certs/key.pem ] && [ -f /certs/cert.pem ]'; then
+  if ! /usr/bin/podman exec goauthentik-app sh -c '[ -f /certs/key.pem ] || [ -f /certs/cert.pem ]'; then
       logger -p user.err "Error: Both certificate files missing in container."
       exit 1
   else
