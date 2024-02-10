@@ -40,6 +40,12 @@ cp server.key ${AGENT_STATE_DIR}/certificates/key.pem
 cp server.pem ${AGENT_STATE_DIR}/certificates/cert.pem
 # Important! preserve import-certificate exit code
 
+# Ensure container is running before proceeding
+until podman ps | grep -q goauthentik-app; do
+  echo "Waiting for goauthentik-app container to start..."
+  sleep 5
+done
+
 # Copy server.key and server.pem into the goauthentik-app pod's certs folder
 podman exec goauthentik-app sh -c "cp /certificates/key.pem /certs/key.pem" || true
 podman exec goauthentik-app sh -c "cp /certificates/cert.pem /certs/cert.pem" || true
