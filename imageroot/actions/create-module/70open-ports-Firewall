@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2022 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import agent
+import os
+
+agent.add_public_service(os.environ['MODULE_ID'], [
+    "9900/tcp", # for Go Debugging metrics
+    "9300/tcp", # for Prometheus metrics
+    "9443/tcp", # For admin interface.
+    "9000/tcp"  # For admin interface.
+])
+
+# Ignore exit code

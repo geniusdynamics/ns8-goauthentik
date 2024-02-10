@@ -29,7 +29,15 @@ openssl x509 -req -sha256 -days 3650 \
     -signkey ${keytmp} \
     -out ${certtmp}
 
-# we want only one pem file all included
+# one pem file all included
 cat ${keytmp} ${certtmp} > certificates/goauthentik.pem
+
+# move certificate and key to separate files
+mv ${keytmp} certificates/key.pem
+mv ${certtmp} certificates/cert.pem
+
+echo "Separate PEM files generated in 'certificates' directory:"
+echo "- certificates/key.pem (Private Key)"
+echo "- certificates/cert.pem (Certificate)"
 
 # -subj "/C=IT/ST=Italy/L=Pesaro/O=NethServer/OU=Authentik/CN=${HOST}/subjectAltName=pubsub.${HOST},upload.${HOST},conference.${HOST}"
