@@ -23,6 +23,7 @@ ExecStartPre=/usr/bin/podman pod create --infra-conmon-pidfile %t/goauthentik.pi
     --pod-id-file %t/goauthentik.pod-id \
     --name goauthentik \
     --publish 127.0.0.1:${TCP_PORT}:9000 \
+    --publish 127.0.0.1:${TCP_PORT}:9443 \
     --replace
 ExecStart=/usr/bin/podman pod start --pod-id-file %t/goauthentik.pod-id
 ExecStop=/usr/bin/podman pod stop --ignore --pod-id-file %t/goauthentik.pod-id -t 10
