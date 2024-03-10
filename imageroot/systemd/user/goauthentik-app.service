@@ -44,7 +44,6 @@ ExecStart=/usr/bin/podman run \
     --volume=goauthentik-media:/media \
     --volume=./certificates:/certs \
     --volume=custom-templates:/templates \
-    --volume=goauthentik-sock:/var/run/docker.sock \
     ${AUTHENTIK_IMAGE}
 ExecReload=mkdir -vp config
 ExecReload=-runagent install-certificate
