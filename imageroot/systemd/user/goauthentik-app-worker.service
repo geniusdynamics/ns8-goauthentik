@@ -11,20 +11,25 @@
 Description=Podman goauthentik-app-worker.service
 BindsTo=goauthentik.service
 After=goauthentik-redis.service goauthentik-pgsql.service goauthentik-app.service
+
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
 EnvironmentFile=%S/state/environment
 EnvironmentFile=%S/state/database.env
 WorkingDirectory=%S/state
 Restart=always
-ExecStartPre=/bin/rm -f %t/goauthentik-app-worker.pid %t/goauthentik-app-worker.ctr-id
+ExecStartPre=/bin/rm -f %t/goauthentik.pid %t/goauthentik.ctr-id
 ExecStartPre=/usr/local/bin/runagent discover-smarthost
+ExecStartPre=mkdir -vp config
+ExecStartPre=-runagent install-certificate
+#ExecStartPre=/usr/bin/timeout 30 bash -c "while [ -f certs/key.pem ] && [ -f certs/cert.pem ]; do sleep 1; done" || exit 1
+#ExecStartPost=/usr/bin/timeout 30 bash -c 'until podman exec %N /lifecycle/ak healthcheck; do sleep 1; done'
 ExecStart=/usr/bin/podman run \
     --detach \
     --user root \
-    --conmon-pidfile=%t/goauthentik-app-worker.pid \
+    --conmon-pidfile=%t/goauthentik.pid \
     --pod-id-file=%t/goauthentik.pod-id \
-    --cidfile=%t/goauthentik-app-worker.ctr-id \
+    --cidfile=%t/goauthentik.ctr-id \
     --cgroups=no-conmon \
     --replace --name=%N \
     --env-file=smarthost.env \
@@ -37,12 +42,21 @@ ExecStart=/usr/bin/podman run \
     --env=AUTHENTIK_POSTGRESQL__PASSWORD=${POSTGRES_PASSWORD} \
     --env=AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY} \
     --volume=goauthentik-media:/media \
-    --volume=goauthentik-certs:/certs \
+    --volume=./certificates:/certs \
     --volume=custom-templates:/templates \
     ${AUTHENTIK_IMAGE} worker
-ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik-app-worker.ctr-id -t 10
-ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik-app-worker.ctr-id
-PIDFile=%t/goauthentik-app-worker.pid
+ExecReload=mkdir -vp config
+ExecReload=-runagent install-certificate
+#ExecReload=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
+#ExecReload=bash -c "while [ ! -f certificates/dh.pem ]; do sleep 1; done"
+#ExecReload=/usr/bin/podman exec goauthentik-app ak import_certificate --certificate /certs/cert.pem --private-key  /certs/key.pem --name goauthentik
+ExecReload=runagent /usr/bin/podman exec \
+    --env-file=environment \
+    --env-file=discovery.env \
+    %N bin/goauthentikctl reload_config
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik.ctr-id -t 10
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik.ctr-id
+PIDFile=%t/goauthentik.pid
 Type=forking
 
 [Install]
