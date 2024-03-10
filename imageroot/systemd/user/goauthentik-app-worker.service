@@ -1,0 +1,49 @@
+#
+# Copyright (C) 2023 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+#
+# This systemd unit starts a goauthentik instance using Podman.
+# Most parts of this file come from podman-generate-systemd.
+#
+[Unit]
+Description=Podman goauthentik-app-worker.service
+BindsTo=goauthentik.service
+After=goauthentik-redis.service goauthentik-pgsql.service goauthentik-app.service
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%S/state/environment
+EnvironmentFile=%S/state/database.env
+WorkingDirectory=%S/state
+Restart=always
+ExecStartPre=/bin/rm -f %t/goauthentik-app-worker.pid %t/goauthentik-app-worker.ctr-id
+ExecStartPre=/usr/local/bin/runagent discover-smarthost
+ExecStart=/usr/bin/podman run \
+    --detach \
+    --user root \
+    --conmon-pidfile=%t/goauthentik-app-worker.pid \
+    --pod-id-file=%t/goauthentik.pod-id \
+    --cidfile=%t/goauthentik-app-worker.ctr-id \
+    --cgroups=no-conmon \
+    --replace --name=%N \
+    --env-file=smarthost.env \
+    --env=goauthentik_* \
+    --env=AUTHENTIK_REDIS__HOST=127.0.0.1 \
+    --env=goauthentik_DBENGINE=postgresql \
+    --env=AUTHENTIK_POSTGRESQL__HOST=127.0.0.1 \
+    --env=AUTHENTIK_POSTGRESQL__NAME=${POSTGRES_DATABASE} \
+    --env=AUTHENTIK_POSTGRESQL__USER=${POSTGRES_USER} \
+    --env=AUTHENTIK_POSTGRESQL__PASSWORD=${POSTGRES_PASSWORD} \
+    --env=AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY} \
+    --volume=goauthentik-media:/media \
+    --volume=goauthentik-certs:/certs \
+    --volume=custom-templates:/templates \
+    ${AUTHENTIK_IMAGE} worker
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik-app-worker.ctr-id -t 10
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik-app-worker.ctr-id
+PIDFile=%t/goauthentik-app-worker.pid
+Type=forking
+
+[Install]
+WantedBy=default.target

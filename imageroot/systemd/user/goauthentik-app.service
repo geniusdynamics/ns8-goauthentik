@@ -42,9 +42,8 @@ ExecStart=/usr/bin/podman run \
     --env=AUTHENTIK_POSTGRESQL__PASSWORD=${POSTGRES_PASSWORD} \
     --env=AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY} \
     --volume=goauthentik-media:/media \
-    --volume=./certificates:/certs \
     --volume=custom-templates:/templates \
-    ${AUTHENTIK_IMAGE}
+    ${AUTHENTIK_IMAGE} server
 ExecReload=mkdir -vp config
 ExecReload=-runagent install-certificate
 #ExecReload=bash -c "while [ ! -f certificates/goauthentik.pem ]; do sleep 1; done"
