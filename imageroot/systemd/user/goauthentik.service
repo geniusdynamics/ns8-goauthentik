@@ -10,8 +10,8 @@
 
 [Unit]
 Description=Podman goauthentik.service
-Requires=goauthentik-redis.service goauthentik-pgsql.service goauthentik-app.service
-Before=goauthentik-redis.service goauthentik-pgsql.service goauthentik-app.service dhgen.service
+Requires=goauthentik-redis.service goauthentik-pgsql.service goauthentik-app.service goauthentik-app-worker.service
+Before=goauthentik-redis.service goauthentik-pgsql.service goauthentik-app.service goauthentik-app-worker.service dhgen.service
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
