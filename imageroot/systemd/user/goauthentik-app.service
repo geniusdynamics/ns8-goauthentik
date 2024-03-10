@@ -37,7 +37,6 @@ ExecStart=/usr/bin/podman run \
     --env=AUTHENTIK_POSTGRESQL__PASSWORD=${POSTGRES_PASSWORD} \
     --env=AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY} \
     --volume=goauthentik-media:/media \
-    --volume=goauthentik-certs:/certs \
     --volume=custom-templates:/templates \
     ${AUTHENTIK_IMAGE} server
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik-app.ctr-id -t 10
