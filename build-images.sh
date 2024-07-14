@@ -14,7 +14,7 @@ images=()
 repobase="${REPOBASE:-ghcr.io/compgeniuses}"
 # Configure the image name
 reponame="goauthentik"
-AUTHENTIK_TAG="2024.2.2"
+AUTHENTIK_TAG="2024.6.1"
 
 # Create a new empty container image
 container=$(buildah from scratch)
