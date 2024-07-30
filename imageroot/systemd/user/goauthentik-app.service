@@ -29,6 +29,7 @@ ExecStart=/usr/bin/podman run \
     --replace --name=%N \
     --env-file=smarthost.env \
     --env-file=goauthentik-db.env \
+    --env-file=goauthentik.env \
     --env=goauthentik_* \
     --volume=goauthentik-media:/media \
     --volume=custom-templates:/templates \
