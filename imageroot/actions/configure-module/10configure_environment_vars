@@ -24,7 +24,7 @@ SMTP_PASSWORD = smtp_settings['password']
 SMTP_ENCRYPT = smtp_settings['encrypt_smtp']
 SMTP_TLS_VERIFY = '1' if smtp_settings['tls_verify'] else ''
 
-goauthnetik_config = {
+goauthentik_config = {
     "AUTHENTIK_EMAIL__HOST": SMTP_HOST,
     "AUTHENTIK_EMAIL__PORT": SMTP_PORT,
     "AUTHENTIK_EMAIL__USERNAME": SMTP_USERNAME,
@@ -33,7 +33,7 @@ goauthnetik_config = {
     "AUTHENTIK_EMAIL__TIMEOUT": "5",
     "AUTHENTIK_EMAIL__FROM": f'<Authentik>{SMTP_USERNAME}'
 }
-agent.write_envfile("goauthnetik.env", goauthnetik_config)
+agent.write_envfile("goauthnetik.env", goauthentik_config)
 
 #Docker Expose Ports 
 COMPOSE_PORT_HTTP=data.get("COMPOSE_PORT_HTTP", 80)
