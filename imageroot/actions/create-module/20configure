@@ -14,17 +14,36 @@ import stat
 
 data = json.load(sys.stdin)
 
+def generate_random_password():
+    return secrets.token_urlsafe(16)
+
+POSTGRES_DB = data.get("POSTGRES_DB","goauthentik")
+POSTGRES_USER = data.get("POSTGRES_USER","goauthentik")
+POSTGRES_PASSWORD = generate_random_password()
+
+db_config = {
+    "POSTGRES_DATABASE": POSTGRES_DB,
+    "POSTGRES_USER": POSTGRES_USER,
+    "POSTGRES_PASSWORD": POSTGRES_PASSWORD,
+}
+agent.write_envfile('database.env', db_config)
+
+def generate_random_key():
+    return secrets.token_hex(16)
 # Setup default values
-random_key = secrets.token_hex(16)
-AUTHENTIK_SECRET_KEY = data.get("AUTHENTIK_SECRET_KEY",random_key)
+AUTHENTIK_SECRET_KEY = data.get("AUTHENTIK_SECRET_KEY",generate_random_key())
 AUTHENTIK_ERROR_REPORTING__ENABLED = True
-# Talk with agent using file descriptor.
 
-agent.set_env("AUTHENTIK_SECRET_KEY", AUTHENTIK_SECRET_KEY)
-
-# Enable disable reporting for errors.
-
-agent.set_env("AUTHENTIK_ERROR_REPORTING__ENABLED", AUTHENTIK_ERROR_REPORTING__ENABLED)
+go_authentik_config = {
+    "AUTHENTIK_SECRET_KEY": AUTHENTIK_SECRET_KEY,
+    "AUTHENTIK_ERROR_REPORTING__ENABLED": AUTHENTIK_ERROR_REPORTING__ENABLED,
+    "AUTHENTIK_REDIS__HOST": "goauthentik-redis",
+    "AUTHENTIK_POSTGRESQL__HOST": "goauthentik-pgsql",
+    "AUTHENTIK_POSTGRESQL__NAME": POSTGRES_DB,
+    "AUTHENTIK_POSTGRESQL__USER": POSTGRES_USER,
+    "AUTHENTIK_POSTGRESQL__PASSWORD": POSTGRES_PASSWORD,
+}
+agent.write_envfile('goauthentik-db.env', go_authentik_config)
 
 # Make sure everything is saved inside the environment file
 # just before starting systemd unit
