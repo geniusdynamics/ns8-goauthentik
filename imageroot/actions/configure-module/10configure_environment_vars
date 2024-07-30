@@ -33,7 +33,7 @@ goauthentik_config = {
     "AUTHENTIK_EMAIL__TIMEOUT": "5",
     "AUTHENTIK_EMAIL__FROM": f'<Authentik>{SMTP_USERNAME}'
 }
-agent.write_envfile("goauthnetik.env", goauthentik_config)
+agent.write_envfile("goauthentik.env", goauthentik_config)
 
 #Docker Expose Ports 
 COMPOSE_PORT_HTTP=data.get("COMPOSE_PORT_HTTP", 80)
