@@ -39,6 +39,11 @@ The above command will:
 - start and configure the goauthentik instance
 - configure a virtual host for trafik to access the instance
 
+After Installing Configure Hostname on App Setting Page.
+
+then Visit: https://auth.domain.link/if/flow/initial-setup/
+You must Append if/flow/initial-setup/ to your configured hostname to first setup the App.
+
 ## Get the configuration
 You can retrieve the configuration with
 
