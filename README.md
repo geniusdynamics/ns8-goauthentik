@@ -6,7 +6,7 @@ authentik is an open-source Identity Provider focused on flexibility and versati
 
 Instantiate the module with:
 
-    add-module ghcr.io/nethserver/goauthentik:latest 1
+    add-module ghcr.io/genius dynamics/goauthentik:latest 1
 
 The output of the command will return the instance name.
 Output example:
@@ -64,6 +64,9 @@ api-cli run update-module --data '{"module_url":"ghcr.io/compgeniuses/goauthenti
 To uninstall the instance:
 
     remove-module --no-preserve goauthentik1
+
+## configs mapping
+https://community.nethserver.org/t/authentik-sso-app-for-nethserver-8/22873/105?u=oneitonitram
 
 ## Smarthost setting discovery
 
