@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Exit on error
+set -e
+
+# Get state directory from systemd service
+STATE_DIR="$(systemctl --user show -p StateDirectory goauthentik.service | cut -d= -f2)"
+
+if [ -z "$STATE_DIR" ]; then
+    echo "Error: Could not determine state directory"
+    exit 1
+fi
+
+cd "${STATE_DIR}/state"
+
+# Check if old volume exists
+if podman volume inspect goauthentik-cert &>/dev/null; then
+    # Check if new volume doesn't exist yet
+    if ! podman volume inspect goauthentik-certs &>/dev/null; then
+        echo "Migrating certificates from goauthentik-cert to goauthentik-certs"
+        # Create new volume
+        podman volume create goauthentik-certs
+
+        # Get actual volume paths
+        OLD_VOLUME_PATH=$(podman volume inspect goauthentik-cert --format '{{.Mountpoint}}')
+        NEW_VOLUME_PATH=$(podman volume inspect goauthentik-certs --format '{{.Mountpoint}}')
+
+        # Copy data using the main app container
+        if ! podman exec \
+            goauthentik-app \
+            cp -av "${OLD_VOLUME_PATH}/." "${NEW_VOLUME_PATH}/"; then
+            echo "Error: Failed to copy certificate data"
+            podman volume rm goauthentik-certs
+            exit 1
+        fi
+
+        # Remove old volume after successful migration
+        podman volume rm goauthentik-cert
+        echo "Certificate migration completed successfully"
+    fi
+fi
