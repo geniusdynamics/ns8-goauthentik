@@ -14,7 +14,7 @@ images=()
 repobase="${REPOBASE:-ghcr.io/geniusdynamics}"
 # Configure the image name
 reponame="goauthentik"
-AUTHENTIK_TAG="2025.2.1"
+AUTHENTIK_TAG="2025.6.3"
 
 # Create a new empty container image
 container=$(buildah from scratch)
