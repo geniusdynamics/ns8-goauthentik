@@ -33,7 +33,7 @@ ExecStart=/usr/bin/podman run \
     --volume=goauthentik-media:/media \
     --volume=goauthentik-certs:/certs \
     --volume=custom-templates:/templates \
-    ${AUTHENTIK_IMAGE} worker
+    ${SERVER_IMAGE} worker
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik-app-worker.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik-app-worker.ctr-id
 PIDFile=%t/goauthentik-app-worker.pid
