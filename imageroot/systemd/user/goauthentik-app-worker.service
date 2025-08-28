@@ -9,7 +9,7 @@
 #
 [Unit]
 Description=Podman goauthentik-app-worker.service
-BindsTo=goauthentik.service
+Wants=goauthentik.service
 After=goauthentik-redis.service goauthentik-pgsql.service goauthentik-app.service
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
