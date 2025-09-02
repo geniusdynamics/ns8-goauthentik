@@ -34,6 +34,7 @@ ExecStart=/usr/bin/podman run \
     --volume=goauthentik-certs:/certs:Z \
     --volume=custom-templates:/templates:Z \
     --shm-size=512m \
+    --tmpfs /dev/shm:rw,noexec,nosuid,size=512m \
     ${SERVER_IMAGE} worker
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik-app-worker.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik-app-worker.ctr-id
