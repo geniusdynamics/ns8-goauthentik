@@ -9,7 +9,7 @@
 #
 [Unit]
 Description=Podman goauthentik-app-worker.service
-BindsTo=goauthentik.service
+Wants=goauthentik.service
 After=goauthentik-redis.service goauthentik-pgsql.service goauthentik-app.service
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
@@ -30,9 +30,11 @@ ExecStart=/usr/bin/podman run \
     --env-file=smarthost.env \
     --env-file=goauthentik-db.env \
     --env-file=goauthentik.env \
-    --volume=goauthentik-media:/media \
-    --volume=goauthentik-certs:/certs \
-    --volume=custom-templates:/templates \
+    --volume=goauthentik-media:/media:Z \
+    --volume=goauthentik-certs:/certs:Z \
+    --volume=custom-templates:/templates:Z \
+    --shm-size=512m \
+    --tmpfs /dev/shm:rw,noexec,nosuid,size=512m \
     ${SERVER_IMAGE} worker
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik-app-worker.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik-app-worker.ctr-id

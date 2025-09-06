@@ -31,8 +31,8 @@ ExecStart=/usr/bin/podman run \
     --env-file=goauthentik-db.env \
     --env-file=goauthentik.env \
     --env=goauthentik_* \
-    --volume=goauthentik-media:/media \
-    --volume=custom-templates:/templates \
+    --volume=goauthentik-media:/media:Z \
+    --volume=custom-templates:/templates:Z \
     ${SERVER_IMAGE} server
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik-app.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/goauthentik-app.ctr-id
