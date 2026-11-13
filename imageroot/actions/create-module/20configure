@@ -29,7 +29,7 @@ db_config = {
 agent.write_envfile('database.env', db_config)
 
 def generate_random_key():
-    return secrets.token_hex(16)
+    return secrets.token_hex(65)
 # Setup default values
 AUTHENTIK_SECRET_KEY = data.get("AUTHENTIK_SECRET_KEY",generate_random_key())
 AUTHENTIK_ERROR_REPORTING__ENABLED = True
