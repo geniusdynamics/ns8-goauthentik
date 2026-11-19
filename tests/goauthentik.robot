@@ -4,7 +4,7 @@ Library    SSHLibrary
 *** Variables ***
 ${HOST}    goauthentik.example.org
 ${SCENARIO}    install
-${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.1.0
+${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.0.1
 
 *** Keywords ***
 Node command
@@ -35,7 +35,14 @@ Check if the previous release upgrades with its credentials and data
     Skip If    '${SCENARIO}' != 'update'
     ${before} =    Node command    runagent -m ${module_id} sha256sum database.env
     Node command    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.core.models import Group; Group.objects.get_or_create(name="ns8-upgrade-fixture")' >/dev/null
-    Node command    runagent -m ${module_id} podman exec goauthentik-app sh -c 'mkdir -p /data/media && echo persisted > /data/media/ns8-upgrade-fixture'
+    Node command    runagent -m ${module_id} podman exec goauthentik-app sh -c 'echo persisted > /media/ns8-upgrade-fixture'
+    FOR    ${waypoint}    IN    2.0.3    2.1.0
+        Node command    api-cli run update-module --data '{"force":true,"module_url":"ghcr.io/geniusdynamics/goauthentik:${waypoint}","instances":["${module_id}"]}'
+        Wait Until Keyword Succeeds    5min    5s    Authentik is ready
+        Node command    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.core.models import Group; assert Group.objects.filter(name="ns8-upgrade-fixture").exists()' >/dev/null
+        ${legacy_media} =    Node command    runagent -m ${module_id} podman exec goauthentik-app cat /media/ns8-upgrade-fixture
+        Should Be Equal    ${legacy_media}    persisted
+    END
     Node command    api-cli run update-module --data '{"force":true,"module_url":"${IMAGE_URL}","instances":["${module_id}"]}'
     Wait Until Keyword Succeeds    5min    5s    Authentik is ready
     Node command    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.core.models import Group; assert Group.objects.filter(name="ns8-upgrade-fixture").exists()' >/dev/null
