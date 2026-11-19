@@ -1,7 +1,7 @@
 # Authentik for NethServer 8
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Authentik Version](https://img.shields.io/badge/Authentik-2026.5.8-blue)](https://goauthentik.io/)
+[![Authentik Version](https://img.shields.io/badge/Authentik-2026.8.5-blue)](https://goauthentik.io/)
 
 A comprehensive NethServer 8 module that integrates **Authentik**, the open-source Identity Provider, into your NethServer infrastructure. Authentik provides centralized authentication, authorization, and user management with support for OAuth2, SAML, LDAP, and many other protocols.
 
@@ -312,3 +312,8 @@ The 2026.2 line deprecates `User.ak_groups` in custom expressions and property m
 
 Upgrade from module 2.2.0 (Authentik 2026.2.7) to Authentik 2026.5.8.
 Keep this 2026.5.8 waypoint before 2026.8. The 2026.5.7 → 2026.8.2 route had an upstream migration-history regression.
+
+### NS8 module 2.4.0
+
+Upgrade from module 2.3.0 (Authentik 2026.5.8) to Authentik 2026.8.5.
+The ingress remains bound to the module node loopback. Authentik trusts forwarded headers only from the loopback and the dedicated slirp4netns pod subnet.

@@ -18,7 +18,7 @@ reponame="goauthentik"
 # renovate: datasource=npm packageName=corepack
 corepack_version=0.36.0
 # renovate: datasource=docker packageName=ghcr.io/goauthentik/server
-AUTHENTIK_VERSION=2026.5.8
+AUTHENTIK_VERSION=2026.8.5
 
 # Create a new empty container image
 container=$(buildah from scratch)
@@ -52,7 +52,7 @@ buildah config --entrypoint=/ \
 	--label="org.nethserver.tcp-ports-demand=1" \
 	--label="org.nethserver.rootfull=0" \
     --label="org.nethserver.min-core=3.0.0" \
-    --label="org.nethserver.min-from=2.2.0" \
+    --label="org.nethserver.min-from=2.3.0" \
 	--label="org.nethserver.images=docker.io/library/postgres:16.16-alpine3.24 ghcr.io/goauthentik/server:${AUTHENTIK_VERSION}" \
 	"${container}"
 # Commit the image
