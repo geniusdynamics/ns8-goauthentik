@@ -44,6 +44,11 @@ Verify the existing Authentik account
     Node command
     ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.core.models import User; user = User.objects.get(username="ns8-migration-user", uuid="${manual_user_uuid}"); assert user.groups.filter(name="ns8-manual-app-access").exists()' >/dev/null
 
+Verify the directory linked to the existing account
+    [Arguments]    ${slug}
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import UserLDAPSourceConnection; assert UserLDAPSourceConnection.objects.filter(source__slug="${slug}", user__uuid="${manual_user_uuid}").exists()' >/dev/null
+
 *** Test Cases ***
 Check if Authentik is installed correctly
     ${image} =    Set Variable If    '${SCENARIO}' == 'update'    ${PREVIOUS_IMAGE}    ${IMAGE_URL}
@@ -94,9 +99,9 @@ Check management of an NS8 OpenLDAP source
     ${slug} =    Node command
     ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; print("fixture-slug=" + LDAPSource.objects.get(managed__startswith="io.geniusdynamics/ns8-managed-ldap/", enabled=True).slug)' | sed -n 's/^fixture-slug=//p'
     Should Match Regexp    ${slug}    ^ns8-managed-ldap-[a-f0-9]{16}$
-    Node command    runagent -m ${module_id} podman exec goauthentik-app ak ldap_sync ${slug} >/dev/null
     Node command
-    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import UserLDAPSourceConnection; assert UserLDAPSourceConnection.objects.filter(source__slug="${slug}", user__uuid="${manual_user_uuid}").exists()' >/dev/null
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; source = LDAPSource.objects.get(slug="${slug}"); assert source.schedules.exists(); [schedule.send() for schedule in source.schedules.all()]' >/dev/null
+    Wait Until Keyword Succeeds    2min    5s    Verify the directory linked to the existing account    ${slug}
     Verify the existing Authentik account
     Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":"","ldap_user_matching":"identifier"}'
     Verify the existing Authentik account
