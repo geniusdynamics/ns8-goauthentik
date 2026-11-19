@@ -6,7 +6,8 @@ ${HOST}    goauthentik.example.org
 ${SCENARIO}    install
 ${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.4.0
 ${PREVIOUS_CANDIDATE}    ghcr.io/geniusdynamics/goauthentik:authentik-2026-8
-${NS8_DOMAIN}    authentik-ci.example.org
+${LDAP_DOMAIN}    authentik-ci.example.org
+${AD_DOMAIN}    authentik-ad.test
 ${ldap_id}    ${EMPTY}
 
 *** Keywords ***
@@ -22,7 +23,17 @@ Authentik is ready
 Remove directory fixture
     IF    $ldap_id
         Node command    remove-module --no-preserve ${ldap_id}
+        Set Suite Variable    ${ldap_id}    ${EMPTY}
     END
+
+Verify managed LDAP source lifecycle
+    [Arguments]    ${domain}    ${membership_field}
+    Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":"${domain}"}'
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; source=LDAPSource.objects.get(managed="io.geniusdynamics/ns8-managed-ldap", enabled=True); assert source.group_membership_field == "${membership_field}" and source.check_connection()["__all__"]["status"] == "ok"' >/dev/null
+    Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":""}'
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; assert not LDAPSource.objects.filter(managed="io.geniusdynamics/ns8-managed-ldap", enabled=True).exists()' >/dev/null
 
 *** Test Cases ***
 Check if Authentik is installed correctly
@@ -63,18 +74,24 @@ Check if Authentik uses persistent files and no Redis container
     Node command    runagent -m ${module_id} podman exec goauthentik-app test -d /data/media
     Node command    runagent -m ${module_id} sh -c '! podman container exists goauthentik-redis'
 
-Check management of an NS8 LDAP source
+Check management of an NS8 OpenLDAP source
     [Teardown]    Remove directory fixture
     ${output} =    Node command    add-module ghcr.io/nethserver/openldap:2.8.1 1
     ${id} =    Evaluate    ast.literal_eval($output)['module_id']    ast
     Set Suite Variable    ${ldap_id}    ${id}
-    Node command    api-cli run module/${ldap_id}/configure-module --data '{"provision":"new-domain","domain":"${NS8_DOMAIN}","admuser":"admin","admpass":"Authentik-CI-2026"}'
-    Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":"${NS8_DOMAIN}"}'
+    Node command    api-cli run module/${ldap_id}/configure-module --data '{"provision":"new-domain","domain":"${LDAP_DOMAIN}","admuser":"admin","admpass":"Authentik-CI-2026"}'
+    Verify managed LDAP source lifecycle    ${LDAP_DOMAIN}    memberUid
+
+Check management of an NS8 Active Directory source
+    [Teardown]    Remove directory fixture
+    ${output} =    Node command    add-module ghcr.io/nethserver/samba:3.5.1 1
+    ${id} =    Evaluate    ast.literal_eval($output)['module_id']    ast
+    Set Suite Variable    ${ldap_id}    ${id}
+    ${defaults} =    Node command    api-cli run module/${ldap_id}/get-defaults --data '{"provision":"new-domain"}'
+    ${ipaddress} =    Evaluate    json.loads($defaults)['ipaddress_list'][0]['ipaddress']    json
     Node command
-    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; source=LDAPSource.objects.get(managed="io.geniusdynamics/ns8-managed-ldap"); assert source.enabled and source.check_connection()["__all__"]["status"] == "ok"' >/dev/null
-    Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":""}'
-    Node command
-    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; assert not LDAPSource.objects.get(managed="io.geniusdynamics/ns8-managed-ldap").enabled' >/dev/null
+    ...    api-cli run module/${ldap_id}/configure-module --data '{"provision":"new-domain","realm":"${AD_DOMAIN}","nbdomain":"AUTHENTIKAD","hostname":"dc1","ipaddress":"${ipaddress}","adminuser":"administrator","adminpass":"Authentik-CI-2026"}'
+    Verify managed LDAP source lifecycle    ${AD_DOMAIN}    member
 
 Check if Authentik is removed correctly
     ${rc} =    Execute Command    remove-module --no-preserve ${module_id}
