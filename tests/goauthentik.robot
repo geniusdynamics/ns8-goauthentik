@@ -30,10 +30,10 @@ Verify managed LDAP source lifecycle
     [Arguments]    ${domain}    ${membership_field}
     Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":"${domain}"}'
     Node command
-    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; source=LDAPSource.objects.get(managed="io.geniusdynamics/ns8-managed-ldap", enabled=True); assert source.group_membership_field == "${membership_field}" and source.check_connection()["__all__"]["status"] == "ok"' >/dev/null
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; source=LDAPSource.objects.get(managed__startswith="io.geniusdynamics/ns8-managed-ldap/", enabled=True); assert source.group_membership_field == "${membership_field}" and source.check_connection()["__all__"]["status"] == "ok"' >/dev/null
     Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":""}'
     Node command
-    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; assert not LDAPSource.objects.filter(managed="io.geniusdynamics/ns8-managed-ldap", enabled=True).exists()' >/dev/null
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; assert not LDAPSource.objects.filter(managed__startswith="io.geniusdynamics/ns8-managed-ldap/", enabled=True).exists()' >/dev/null
 
 *** Test Cases ***
 Check if Authentik is installed correctly
