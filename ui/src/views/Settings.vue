@@ -109,7 +109,7 @@
                 :label="$t('settings.ldap_choose_domains')"
                 :helper-text="$t('settings.ldap_additional_help')"
                 :options="additionalLdapOptions"
-                :selected-label="$t('settings.ldap_selected_domains')"
+                :selected-label="$tc('settings.ldap_selected_domains', ldapAdditionalDomains.length)"
                 :clear-selection-aria-label="$t('settings.ldap_clear_selection')"
                 :clear-filter-label="$t('settings.ldap_clear_filter')"
                 :unselect-aria-label="$t('settings.ldap_remove_domain')"

@@ -27,7 +27,7 @@
         "ldap_domain_help": "Importa utenti e gruppi da una directory NS8.",
         "ldap_additional_domains": "Domini utente aggiuntivi",
     "ldap_choose_domains": "Scegli domini aggiuntivi",
-    "ldap_selected_domains": "selezionati",
+    "ldap_selected_domains": "selezionato | selezionati",
     "ldap_clear_selection": "Cancella selezione",
     "ldap_clear_filter": "Cancella filtro",
     "ldap_remove_domain": "Rimuovi dominio",
