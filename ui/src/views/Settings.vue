@@ -72,7 +72,7 @@
               :disabled="loading.getConfiguration || loading.configureModule"
               class="mg-bottom maxwidth"
               ref="ldap_domain"
-              @change="ldapUserMatching = 'identifier'"
+              @change="changeLdapDomain"
             >
               <cv-select-option value="">{{
                 $t("settings.ldap_disabled")
@@ -98,7 +98,28 @@
                 }})</cv-select-option
               >
             </cv-select>
-            <template v-if="ldapDomain">
+            <div
+              v-if="ldapDomain && additionalLdapOptions.length"
+              :inert="loading.getConfiguration || loading.configureModule ? '' : null"
+            >
+              <NsMultiSelect
+                v-model="ldapAdditionalDomains"
+                :key="'additional-' + ldapOptionsRevision"
+                :title="$t('settings.ldap_additional_domains')"
+                :label="$t('settings.ldap_choose_domains')"
+                :helper-text="$t('settings.ldap_additional_help')"
+                :options="additionalLdapOptions"
+                :selected-label="$tc('settings.ldap_selected_domains', ldapAdditionalDomains.length)"
+                :clear-selection-aria-label="$t('settings.ldap_clear_selection')"
+                :clear-filter-label="$t('settings.ldap_clear_filter')"
+                :unselect-aria-label="$t('settings.ldap_remove_domain')"
+                filterable
+                :disabled="loading.getConfiguration || loading.configureModule"
+                class="mg-bottom maxwidth"
+                @change="useIdentifierMatching"
+              />
+            </div>
+            <template v-if="ldapDomain && !ldapAdditionalDomains.length">
               <cv-select
                 v-model="ldapUserMatching"
                 :label="$t('settings.ldap_user_matching')"
@@ -181,6 +202,7 @@ export default {
       ldapDomain: "",
       ldapUserMatching: "identifier",
       ldapDomains: [],
+      ldapAdditionalDomains: [],
       ldapOptionsRevision: 0,
       loading: {
         getConfiguration: false,
@@ -198,6 +220,25 @@ export default {
   },
   computed: {
     ...mapState(["instanceName", "core", "appName"]),
+    additionalLdapOptions() {
+      const options = this.ldapDomains
+        .filter(({ name }) => name !== this.ldapDomain)
+        .map(({ name, schema }) => ({
+          name,
+          value: name,
+          label: `${name} (${this.$t("settings.ldap_schema_" + schema)})`,
+        }));
+      for (const name of this.ldapAdditionalDomains) {
+        if (!options.some(({ value }) => value === name)) {
+          options.push({
+            name,
+            value: name,
+            label: this.$t("settings.ldap_saved_domain_unavailable", { domain: name }),
+          });
+        }
+      }
+      return options;
+    },
   },
   created() {
     this.getConfiguration();
@@ -213,6 +254,17 @@ export default {
     next();
   },
   methods: {
+    changeLdapDomain(domain) {
+      this.ldapUserMatching = "identifier";
+      this.ldapAdditionalDomains = domain
+        ? this.ldapAdditionalDomains.filter((name) => name !== domain)
+        : [];
+    },
+    useIdentifierMatching(domains) {
+      if (domains.length) {
+        this.ldapUserMatching = "identifier";
+      }
+    },
     async getConfiguration() {
       this.loading.getConfiguration = true;
       this.error.getConfiguration = "";
@@ -263,6 +315,7 @@ export default {
       this.ldapDomain = config.ldap_domain || "";
       this.ldapUserMatching = config.ldap_user_matching || "identifier";
       this.ldapDomains = config.ldap_domains || [];
+      this.ldapAdditionalDomains = config.ldap_additional_domains || [];
       this.ldapOptionsRevision += 1;
 
       this.loading.getConfiguration = false;
@@ -334,6 +387,7 @@ export default {
             lets_encrypt: this.isLetsEncryptEnabled,
             http2https: this.isHttpToHttpsEnabled,
             ldap_domain: this.ldapDomain,
+            ldap_additional_domains: this.ldapAdditionalDomains,
             ldap_user_matching: this.ldapUserMatching,
           },
           extra: {

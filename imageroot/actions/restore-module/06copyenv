@@ -8,6 +8,7 @@
 import sys
 import json
 import agent
+import authentik_directory as directory
 
 request = json.load(sys.stdin)
 
@@ -20,8 +21,14 @@ for evar in [
     ]:
     agent.set_env(evar, original_environment[evar])
 
-for evar in ("AUTHENTIK_NS8_LDAP_DOMAIN", "AUTHENTIK_NS8_LDAP_MATCHING", "AUTHENTIK_NS8_LDAP_MANAGED"):
-    if evar in original_environment:
-        agent.set_env(evar, original_environment[evar])
+directory_defaults = {
+    directory.DOMAIN: "",
+    directory.MATCHING: "identifier",
+    directory.ADDITIONAL: "",
+    directory.MANAGED: "False",
+}
+agent.mset_env({
+    name: original_environment.get(name, default) for name, default in directory_defaults.items()
+})
 
 agent.dump_env()
