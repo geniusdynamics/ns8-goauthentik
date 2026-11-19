@@ -18,7 +18,7 @@ A comprehensive NethServer 8 module that integrates **Authentik**, the open-sour
 
 ### Prerequisites
 
-- NethServer 8 installed and running
+- NethServer 8 with core 3.23.0 or later
 - Administrative access to the NethServer cluster
 - A domain name for the Authentik instance
 
@@ -239,6 +239,9 @@ yarn serve
 
 ## 📚 Documentation
 
+- [Upgrade paths, validation, and rollback](docs/upgrades.md)
+- [NS8 directory setup, multiple domains, and migration of existing accounts](docs/ns8-directory-login.md)
+- [NS8 single sign-on compatibility, manual OIDC, and developer roadmap](docs/ns8-sso.md)
 - [Authentik Documentation](https://docs.goauthentik.io/)
 - [NethServer 8 Documentation](https://nethserver.github.io/ns8-core/)
 - [Community Forum Thread](https://community.nethserver.org/t/authentik-sso-app-for-nethserver-8/22873/105)
@@ -287,33 +290,23 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## Upgrade path
 
-The compatibility release on Authentik 2025.12.6 accepts upgrades from
-NS8 module 2.0.3 or later. Back up the module before switching versions.
-For an existing 2025.8 installation, install module 2.0.3 (Authentik
-2025.10.4) before moving to the 2025.12 line. Review duplicate group names
-in Authentik before moving from 2025.10 to 2025.12. The preflight reports
-duplicates without changing group or policy assignments.
+Follow the [staged upgrade guide](docs/upgrades.md) for version checkpoints,
+backup and rollback, and validation after updating.
 
-The module persists new files under `/data` and mounts the existing media
-volume under `/data/media`. The upgrade copies files from the previous
-containers and keeps existing volume files if their names collide. The old
-Redis data volume is retained on disk. Authentik uses PostgreSQL for its
-cache and tasks.
+## NS8 directory login
 
-Restore the pre-upgrade backup to go back to an earlier Authentik version.
-Reinstalling the earlier image over a migrated database is unsupported.
+Directory integration is opt-in. In the NS8 module's **Settings**, choose a
+primary OpenLDAP or Active Directory domain and optionally select additional
+domains. Each selected domain appears in Authentik under **Directory →
+Federation and Social login**. Existing manual setups can continue with
+**User domain** unselected. [Directory guide](docs/ns8-directory-login.md)
 
-### NS8 module 2.2.0
+### Migrate an existing Authentik setup to an NS8 directory
 
-Upgrade from module 2.1.1 (Authentik 2025.12.6) to Authentik 2026.2.7.
-The 2026.2 line deprecates `User.ak_groups` in custom expressions and property mappings. Review those expressions and switch to `User.groups`.
+Follow the [migration checklist](docs/ns8-directory-login.md#migrate-an-existing-authentik-setup-to-an-ns8-directory)
+to keep the existing application registrations, verify account links and group
+access, and test fresh sign-ins before retiring the old source.
 
-### NS8 module 2.3.0
+#### Roll back the directory switch
 
-Upgrade from module 2.2.0 (Authentik 2026.2.7) to Authentik 2026.5.8.
-Keep this 2026.5.8 waypoint before 2026.8. The 2026.5.7 → 2026.8.2 route had an upstream migration-history regression.
-
-### NS8 module 2.4.0
-
-Upgrade from module 2.3.0 (Authentik 2026.5.8) to Authentik 2026.8.5.
-The ingress remains bound to the module node loopback. Authentik trusts forwarded headers only from the loopback and the dedicated slirp4netns pod subnet.
+Follow the [directory rollback procedure](docs/ns8-directory-login.md#roll-back-the-directory-switch).

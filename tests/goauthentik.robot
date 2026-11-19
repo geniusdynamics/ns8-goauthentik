@@ -4,8 +4,11 @@ Library    SSHLibrary
 *** Variables ***
 ${HOST}    goauthentik.example.org
 ${SCENARIO}    install
-${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.1.0
-@{WAYPOINTS}    2.1.1,authentik-2025-12-compat    2.2.0,authentik-2026-2    2.3.0,authentik-2026-5    2.4.0,2.4.0
+${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.4.0
+${LDAP_DOMAIN}    authentik-ci.example.org
+${AD_DOMAIN}    authentik-ad.test
+${ldap_id}    ${EMPTY}
+${openldap_id}    ${EMPTY}
 
 *** Keywords ***
 Node command
@@ -17,13 +20,39 @@ Node command
 Authentik is ready
     Node command    curl -kfSs --resolve ${HOST}:443:127.0.0.1 https://${HOST}/-/health/ready/ >/dev/null
 
-Upgrade to image
-    [Arguments]    ${image}
-    Node command    api-cli run update-module --data '{"force":true,"module_url":"${image}","instances":["${module_id}"]}'
-    Wait Until Keyword Succeeds    5min    5s    Authentik is ready
-    Node command    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.core.models import Group; assert Group.objects.filter(name="ns8-upgrade-fixture").exists()' >/dev/null
-    ${media} =    Node command    runagent -m ${module_id} podman exec goauthentik-app cat /data/media/ns8-upgrade-fixture
-    Should Be Equal    ${media}    persisted
+Remove directory fixtures
+    IF    $ldap_id
+        Node command    remove-module --no-preserve ${ldap_id}
+        Set Suite Variable    ${ldap_id}    ${EMPTY}
+    END
+    IF    $openldap_id
+        Node command    remove-module --no-preserve ${openldap_id}
+        Set Suite Variable    ${openldap_id}    ${EMPTY}
+    END
+
+Verify managed LDAP source lifecycle
+    [Arguments]    ${domain}    ${membership_field}
+    Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":"${domain}"}'
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; source=LDAPSource.objects.get(managed__startswith="io.geniusdynamics/ns8-managed-ldap/", enabled=True); assert source.group_membership_field == "${membership_field}" and source.check_connection()["__all__"]["status"] == "ok"' >/dev/null
+    Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":""}'
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; assert not LDAPSource.objects.filter(managed__startswith="io.geniusdynamics/ns8-managed-ldap/", enabled=True).exists()' >/dev/null
+
+Create an existing Authentik account
+    ${uuid} =    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.core.models import Group, User; user = User.objects.create(username="ns8-migration-user"); user.groups.add(Group.objects.get_or_create(name="ns8-manual-app-access")[0]); print("fixture-uuid=" + str(user.uuid))' | sed -n 's/^fixture-uuid=//p'
+    Should Match Regexp    ${uuid}    ^[a-f0-9-]{36}$
+    Set Suite Variable    ${manual_user_uuid}    ${uuid}
+
+Verify the existing Authentik account
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.core.models import User; user = User.objects.get(username="ns8-migration-user", uuid="${manual_user_uuid}"); assert user.groups.filter(name="ns8-manual-app-access").exists()' >/dev/null
+
+Verify the directory linked to the existing account
+    [Arguments]    ${slug}
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import UserLDAPSourceConnection; assert UserLDAPSourceConnection.objects.filter(source__slug="${slug}", user__uuid="${manual_user_uuid}").exists()' >/dev/null
 
 *** Test Cases ***
 Check if Authentik is installed correctly
@@ -42,26 +71,77 @@ Check if Authentik works as expected
 
 Check if the previous release upgrades with its credentials and data
     Skip If    '${SCENARIO}' != 'update'
+    Create an existing Authentik account
     ${before} =    Node command    runagent -m ${module_id} sha256sum database.env
     Node command    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.core.models import Group; Group.objects.get_or_create(name="ns8-upgrade-fixture")' >/dev/null
     Node command    runagent -m ${module_id} podman exec goauthentik-app sh -c 'mkdir -p /data/media && echo persisted > /data/media/ns8-upgrade-fixture'
-    FOR    ${waypoint}    IN    @{WAYPOINTS}
-        ${stable}    ${candidate} =    Evaluate    $waypoint.split(",")
-        ${image} =    Set Variable    ghcr.io/geniusdynamics/goauthentik:${stable}
-        ${available} =    Execute Command    podman manifest inspect ${image} >/dev/null 2>&1
-        ...    return_rc=True    return_stdout=False
-        IF    ${available} != 0
-            ${image} =    Set Variable    ghcr.io/geniusdynamics/goauthentik:${candidate}
-        END
-        Upgrade to image    ${image}
-    END
-    Upgrade to image    ${IMAGE_URL}
+    Node command    api-cli run update-module --data '{"force":true,"module_url":"${IMAGE_URL}","instances":["${module_id}"]}'
+    Wait Until Keyword Succeeds    5min    5s    Authentik is ready
+    Node command    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.core.models import Group; assert Group.objects.filter(name="ns8-upgrade-fixture").exists()' >/dev/null
+    ${media} =    Node command    runagent -m ${module_id} podman exec goauthentik-app cat /data/media/ns8-upgrade-fixture
+    Should Be Equal    ${media}    persisted
     ${after} =    Node command    runagent -m ${module_id} sha256sum database.env
     Should Be Equal    ${after}    ${before}
 
 Check if Authentik uses persistent files and no Redis container
     Node command    runagent -m ${module_id} podman exec goauthentik-app test -d /data/media
     Node command    runagent -m ${module_id} sh -c '! podman container exists goauthentik-redis'
+
+Check management of an NS8 OpenLDAP source
+    ${output} =    Node command    add-module ghcr.io/nethserver/openldap:2.8.1 1
+    ${id} =    Evaluate    ast.literal_eval($output)['module_id']    ast
+    Set Suite Variable    ${openldap_id}    ${id}
+    Node command    api-cli run module/${openldap_id}/configure-module --data '{"provision":"new-domain","domain":"${LDAP_DOMAIN}","admuser":"admin","admpass":"Authentik-CI-2026"}'
+    Verify managed LDAP source lifecycle    ${LDAP_DOMAIN}    memberUid
+
+    IF    '${SCENARIO}' == 'install'
+        Create an existing Authentik account
+    END
+    Verify the existing Authentik account
+    Node command    api-cli run module/${openldap_id}/add-user --data '{"user":"ns8-migration-user","display_name":"NS8 Migration User","mail":"ns8-migration-user@authentik-ci.example.org"}'
+    Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":"${LDAP_DOMAIN}","ldap_user_matching":"username_link"}'
+    ${slug} =    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; print("fixture-slug=" + LDAPSource.objects.get(managed__startswith="io.geniusdynamics/ns8-managed-ldap/", enabled=True).slug)' | sed -n 's/^fixture-slug=//p'
+    Should Match Regexp    ${slug}    ^ns8-managed-ldap-[a-f0-9]{16}$
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; source = LDAPSource.objects.get(slug="${slug}"); assert source.schedules.exists(); [schedule.send() for schedule in source.schedules.all()]' >/dev/null
+    Wait Until Keyword Succeeds    2min    5s    Verify the directory linked to the existing account    ${slug}
+    Verify the existing Authentik account
+    Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":"","ldap_user_matching":"identifier"}'
+    Verify the existing Authentik account
+
+Check management of an NS8 Active Directory source
+    [Teardown]    Remove directory fixtures
+    ${output} =    Node command    add-module ghcr.io/nethserver/samba:3.5.1 1
+    ${id} =    Evaluate    ast.literal_eval($output)['module_id']    ast
+    Set Suite Variable    ${ldap_id}    ${id}
+    ${defaults} =    Node command    api-cli run module/${ldap_id}/get-defaults --data '{"provision":"new-domain"}'
+    ${ipaddress} =    Evaluate    json.loads($defaults)['ipaddress_list'][0]['ipaddress']    json
+    Node command
+    ...    api-cli run module/${ldap_id}/configure-module --data '{"provision":"new-domain","realm":"${AD_DOMAIN}","nbdomain":"AUTHENTIKAD","hostname":"dc1","ipaddress":"${ipaddress}","adminuser":"administrator","adminpass":"Authentik-CI-2026"}'
+    Verify managed LDAP source lifecycle    ${AD_DOMAIN}    member
+
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; LDAPSource.objects.create(slug="manual-directory", name="Manual directory", base_dn="dc=authentik-ad,dc=test", server_uri="ldap://127.0.0.1", enabled=True, sync_users=False, sync_groups=False, sync_users_password=False)' >/dev/null
+    ${payload} =    Set Variable    {"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":"${LDAP_DOMAIN}","ldap_additional_domains":["${AD_DOMAIN}"]}
+    ${rc} =    Execute Command    api-cli run module/${module_id}/configure-module --data '${payload}'
+    ...    return_rc=True    return_stdout=False
+    Should Not Be Equal As Integers    ${rc}    0
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; assert not LDAPSource.objects.filter(managed__startswith="io.geniusdynamics/ns8-managed-ldap/", enabled=True).exists(); assert LDAPSource.objects.filter(slug="manual-directory", enabled=True).update(base_dn="dc=unrelated,dc=test") == 1' >/dev/null
+    Node command    api-cli run module/${module_id}/configure-module --data '${payload}'
+    ${configuration} =    Node command    api-cli run module/${module_id}/get-configuration --data '{}'
+    ${additional} =    Evaluate    json.loads($configuration)['ldap_additional_domains']    json
+    ${expected} =    Create List    ${AD_DOMAIN}
+    Should Be Equal    ${additional}    ${expected}
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; sources = LDAPSource.objects.filter(managed__startswith="io.geniusdynamics/ns8-managed-ldap/", enabled=True); assert set(sources.values_list("group_membership_field", flat=True)) == {"member", "memberUid"}; assert all(source.check_connection()["__all__"]["status"] == "ok" for source in sources); assert LDAPSource.objects.get(slug="manual-directory").enabled' >/dev/null
+    Node command
+    ...    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":"${LDAP_DOMAIN}","ldap_additional_domains":[]}'
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; sources = LDAPSource.objects.filter(managed__startswith="io.geniusdynamics/ns8-managed-ldap/"); assert sources.get(group_membership_field="memberUid").enabled; assert not sources.get(group_membership_field="member").enabled; assert LDAPSource.objects.get(slug="manual-directory").enabled' >/dev/null
+    Node command
+    ...    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":""}'
 
 Check if the Authentik worker is healthy
     Wait Until Keyword Succeeds    3min    5s    Node command

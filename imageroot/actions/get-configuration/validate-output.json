@@ -31,6 +31,44 @@
             "type": "boolean",
             "title": "HTTP to HTTPS redirection",
             "description": "Redirect all the HTTP requests to HTTPS"
+        },
+        "ldap_domain": {
+            "type": "string"
+        },
+        "ldap_additional_domains": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "minLength": 1
+            }
+        },
+        "ldap_user_matching": {
+            "enum": [
+                "identifier",
+                "username_link"
+            ]
+        },
+        "ldap_domains": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "schema"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "schema": {
+                        "enum": [
+                            "ad",
+                            "rfc2307"
+                        ]
+                    }
+                }
+            }
         }
     }
 }

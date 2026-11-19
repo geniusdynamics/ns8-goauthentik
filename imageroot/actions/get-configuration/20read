@@ -12,7 +12,7 @@
 import os
 import sys
 import json
-import agent
+import authentik_directory as directory
 
 # Prepare return variable
 config = {}
@@ -21,6 +21,9 @@ config = {}
 config["host"] = os.getenv("TRAEFIK_HOST","")
 config["http2https"] = os.getenv("TRAEFIK_HTTP2HTTPS") == "True"
 config["lets_encrypt"] = os.getenv("TRAEFIK_LETS_ENCRYPT") == "True"
+
+config["ldap_domain"], config["ldap_user_matching"], config["ldap_additional_domains"], _ = directory.settings()
+config["ldap_domains"] = directory.domains()
 
 # Dump the configuration to stdout
 json.dump(config, fp=sys.stdout)

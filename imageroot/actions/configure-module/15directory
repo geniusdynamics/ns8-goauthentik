@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import json
+import sys
+
+import authentik_directory as directory
+
+domain, matching, additional, _ = directory.request_settings(json.load(sys.stdin))
+selected = ([domain] if domain else []) + additional
+if len(selected) != len(set(selected)) or (additional and not domain):
+    directory.validation_failed("ldap_domains_distinct")
+if selected and not set(selected) <= {entry["name"] for entry in directory.domains()}:
+    directory.validation_failed("ldap_domain_unavailable")
+if additional and matching != "identifier":
+    directory.validation_failed("ldap_multi_requires_identifiers")

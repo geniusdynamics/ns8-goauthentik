@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import subprocess
+import authentik_directory
+
+if subprocess.run(["systemctl", "--user", "-q", "is-active", "goauthentik-app.service"]).returncode == 0:
+    authentik_directory.reconcile()
