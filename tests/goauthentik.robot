@@ -117,6 +117,10 @@ Check management of an NS8 Active Directory source
     ...    api-cli run module/${ldap_id}/configure-module --data '{"provision":"new-domain","realm":"${AD_DOMAIN}","nbdomain":"AUTHENTIKAD","hostname":"dc1","ipaddress":"${ipaddress}","adminuser":"administrator","adminpass":"Authentik-CI-2026"}'
     Verify managed LDAP source lifecycle    ${AD_DOMAIN}    member
 
+Check if the Authentik worker is healthy
+    Wait Until Keyword Succeeds    3min    5s    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app-worker ak healthcheck >/dev/null
+
 Check if Authentik is removed correctly
     ${rc} =    Execute Command    remove-module --no-preserve ${module_id}
     ...    return_rc=True  return_stdout=False
