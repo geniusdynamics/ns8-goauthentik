@@ -1,7 +1,7 @@
 # Authentik for NethServer 8
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Authentik Version](https://img.shields.io/badge/Authentik-2025.12.6-blue)](https://goauthentik.io/)
+[![Authentik Version](https://img.shields.io/badge/Authentik-2026.2.7-blue)](https://goauthentik.io/)
 
 A comprehensive NethServer 8 module that integrates **Authentik**, the open-source Identity Provider, into your NethServer infrastructure. Authentik provides centralized authentication, authorization, and user management with support for OAuth2, SAML, LDAP, and many other protocols.
 
@@ -302,3 +302,8 @@ cache and tasks.
 
 Restore the pre-upgrade backup to go back to an earlier Authentik version.
 Reinstalling the earlier image over a migrated database is unsupported.
+
+### NS8 module 2.2.0
+
+Upgrade from module 2.1.1 (Authentik 2025.12.6) to Authentik 2026.2.7.
+The 2026.2 line deprecates `User.ak_groups` in custom expressions and property mappings. Review those expressions and switch to `User.groups`.
