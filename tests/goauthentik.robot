@@ -4,7 +4,9 @@ Library    SSHLibrary
 *** Variables ***
 ${HOST}    goauthentik.example.org
 ${SCENARIO}    install
-${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.1.0
+${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.1.1
+
+${PREVIOUS_CANDIDATE}    ghcr.io/geniusdynamics/goauthentik:authentik-2025-12-compat
 
 *** Keywords ***
 Node command
@@ -19,6 +21,13 @@ Authentik is ready
 *** Test Cases ***
 Check if Authentik is installed correctly
     ${image} =    Set Variable If    '${SCENARIO}' == 'update'    ${PREVIOUS_IMAGE}    ${IMAGE_URL}
+    IF    '${SCENARIO}' == 'update'
+        ${available} =    Execute Command    podman manifest inspect ${image} >/dev/null 2>&1
+        ...    return_rc=True    return_stdout=False
+        IF    ${available} != 0
+            ${image} =    Set Variable    ${PREVIOUS_CANDIDATE}
+        END
+    END
     ${output} =    Node command    add-module ${image} 1
     &{output} =    Evaluate    ${output}
     Set Suite Variable    ${module_id}    ${output.module_id}
