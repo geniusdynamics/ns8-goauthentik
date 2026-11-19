@@ -241,6 +241,7 @@ yarn serve
 
 - [Upgrade paths, validation, and rollback](docs/upgrades.md)
 - [NS8 directory setup, multiple domains, and migration of existing accounts](docs/ns8-directory-login.md)
+- [NS8 single sign-on compatibility, manual OIDC, and developer roadmap](docs/ns8-sso.md)
 - [Authentik Documentation](https://docs.goauthentik.io/)
 - [NethServer 8 Documentation](https://nethserver.github.io/ns8-core/)
 - [Community Forum Thread](https://community.nethserver.org/t/authentik-sso-app-for-nethserver-8/22873/105)

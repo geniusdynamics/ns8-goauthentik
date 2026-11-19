@@ -1,5 +1,8 @@
 # NS8 directory login
 
+For application sign-in and native NS8 OIDC compatibility, see the
+[NS8 single sign-on guide](ns8-sso.md).
+
 From **Settings**, select an NS8 user domain to provision a managed LDAP source
 in Authentik. Active Directory and OpenLDAP domains use the node LDAP proxy,
 with the filters and bind credentials for that domain. The deployment also
