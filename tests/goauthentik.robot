@@ -4,9 +4,9 @@ Library    SSHLibrary
 *** Variables ***
 ${HOST}    goauthentik.example.org
 ${SCENARIO}    install
-${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.1.1
+${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.2.0
 
-${PREVIOUS_CANDIDATE}    ghcr.io/geniusdynamics/goauthentik:authentik-2025-12-compat
+${PREVIOUS_CANDIDATE}    ghcr.io/geniusdynamics/goauthentik:authentik-2026-2
 
 *** Keywords ***
 Node command
