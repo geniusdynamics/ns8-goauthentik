@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from contextlib import contextmanager
+import fcntl
 import hashlib
 import json
 import os
@@ -51,10 +53,25 @@ class OverlappingRoots(Exception):
     pass
 
 
+@contextmanager
 def directory_lock():
+    # Serialize configure and refresh across the worker processes.
+    lock = Path(os.environ["AGENT_STATE_DIR"]) / ".ldap-configuration.lock"
+    with lock.open("a") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        yield
+
+
+def save_environment(values):
     import agent
 
-    return agent.exclusive_file_lock(str(Path(os.environ["AGENT_STATE_DIR"]) / "ldap-configuration"))
+    if hasattr(agent, "mset_env"):
+        agent.mset_env(values)
+    else:
+        # Older NS8 releases provide an atomic environment-file writer.
+        path = str(Path(os.environ["AGENT_STATE_DIR"]) / "environment")
+        previous = agent.read_envfile(path)
+        agent.write_envfile(path, {**previous, **values})
 
 
 def configure(request):
@@ -80,7 +97,7 @@ def configure_sources(request):
         if isinstance(error, OverlappingRoots):
             validation_failed("ldap_overlapping_roots")
         raise
-    agent.mset_env({
+    save_environment({
         DOMAIN: domain,
         MATCHING: matching,
         ADDITIONAL: " ".join(additional),
