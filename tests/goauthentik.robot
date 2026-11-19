@@ -5,7 +5,8 @@ Library    SSHLibrary
 ${HOST}    goauthentik.example.org
 ${SCENARIO}    install
 ${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.1.0
-@{WAYPOINTS}    2.1.1,authentik-2025-12-compat    2.2.0,authentik-2026-2    2.3.0,authentik-2026-5
+${RELEASE_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.4.0
+@{WAYPOINTS}    2.1.1    2.2.0    2.3.0
 
 *** Keywords ***
 Node command
@@ -27,7 +28,7 @@ Upgrade to image
 
 *** Test Cases ***
 Check if Authentik is installed correctly
-    ${image} =    Set Variable If    '${SCENARIO}' == 'update'    ${PREVIOUS_IMAGE}    ${IMAGE_URL}
+    ${image} =    Set Variable If    '${SCENARIO}' == 'update'    ${PREVIOUS_IMAGE}    ${RELEASE_IMAGE}
     ${output} =    Node command    add-module ${image} 1
     &{output} =    Evaluate    ${output}
     Set Suite Variable    ${module_id}    ${output.module_id}
@@ -46,16 +47,10 @@ Check if the previous release upgrades with its credentials and data
     Node command    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.core.models import Group; Group.objects.get_or_create(name="ns8-upgrade-fixture")' >/dev/null
     Node command    runagent -m ${module_id} podman exec goauthentik-app sh -c 'mkdir -p /data/media && echo persisted > /data/media/ns8-upgrade-fixture'
     FOR    ${waypoint}    IN    @{WAYPOINTS}
-        ${stable}    ${candidate} =    Evaluate    $waypoint.split(",")
-        ${image} =    Set Variable    ghcr.io/geniusdynamics/goauthentik:${stable}
-        ${available} =    Execute Command    podman manifest inspect ${image} >/dev/null 2>&1
-        ...    return_rc=True    return_stdout=False
-        IF    ${available} != 0
-            ${image} =    Set Variable    ghcr.io/geniusdynamics/goauthentik:${candidate}
-        END
+        ${image} =    Set Variable    ghcr.io/geniusdynamics/goauthentik:${waypoint}
         Upgrade to image    ${image}
     END
-    Upgrade to image    ${IMAGE_URL}
+    Upgrade to image    ${RELEASE_IMAGE}
     ${after} =    Node command    runagent -m ${module_id} sha256sum database.env
     Should Be Equal    ${after}    ${before}
 
