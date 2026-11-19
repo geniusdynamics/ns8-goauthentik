@@ -1,0 +1,27 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+set -euo pipefail
+
+db=goauthentik-pgsql
+for attempt in {1..60}; do
+    if podman exec "$db" sh -c 'pg_isready -q -U "$POSTGRES_USER" -d "${POSTGRES_DB:-$POSTGRES_USER}"'; then
+        break
+    fi
+    if [[ "$attempt" == 60 ]]; then
+        echo "Authentik PostgreSQL did not become ready" >&2
+        exit 1
+    fi
+    sleep 2
+done
+
+query() {
+    podman exec "$db" sh -c 'exec psql -X -At -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "${POSTGRES_DB:-$POSTGRES_USER}" -c "$1"' sh "$1"
+}
+
+if [[ $(query "SELECT to_regclass('authentik_core_group') IS NOT NULL") == t ]]; then
+    duplicates=$(query 'SELECT count(*) FROM (SELECT name FROM authentik_core_group GROUP BY name HAVING count(*) > 1) AS duplicate_groups')
+    if [[ "$duplicates" != 0 ]]; then
+        echo "Authentik has $duplicates duplicate group name(s). Review and resolve them before starting the upgraded version." >&2
+        exit 1
+    fi
+fi

@@ -12,4 +12,11 @@ set -e
 # Redirect any output to the journal (stderr)
 exec 1>&2
 
+runagent preserve-goauthentik-files
+
+# Keep the old Redis volume for existing backups. PostgreSQL now does
+# Authentik's cache and task work.
+if [[ -f goauthentik-db.env ]]; then
+    sed -i '/^AUTHENTIK_REDIS__/d' goauthentik-db.env
+fi
 systemctl --user try-restart goauthentik.service

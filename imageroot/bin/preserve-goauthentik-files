@@ -1,0 +1,36 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+set -euo pipefail
+
+# The previously released 2025.12 module used its image's /data directory
+# without a persistent mount. Keep those files alongside the old /media
+# volume. A read-only listing works even on a stopped container.
+for container in goauthentik-app goauthentik-app-worker; do
+    if ! podman container exists "$container"; then
+        continue
+    fi
+    if podman inspect --format '{{range .Mounts}}{{printf "%s:%s\n" .Name .Destination}}{{end}}' "$container" | grep -Fxq goauthentik-files:/data; then
+        continue
+    fi
+
+    capture=$(mktemp -d)
+    trap 'podman unshare rm -rf "$capture"' EXIT
+    # The upstream images since 2025.10 include /data. Empty images and
+    # containers with no stored files still produce an empty directory.
+    podman cp "$container:/data/." "$capture"
+    for volume in goauthentik-files goauthentik-media; do
+        if ! podman volume exists "$volume"; then
+            podman volume create "$volume" >/dev/null
+        fi
+    done
+    files=$(podman volume inspect --format '{{.Mountpoint}}' goauthentik-files)
+    media=$(podman volume inspect --format '{{.Mountpoint}}' goauthentik-media)
+    if [[ -d "$capture/media" ]]; then
+        # Preserve previously stored files on name collisions.
+        podman unshare cp -an "$capture/media/." "$media/"
+        podman unshare rm -rf "$capture/media"
+    fi
+    podman unshare cp -an "$capture/." "$files/"
+    podman unshare rm -rf "$capture"
+    trap - EXIT
+done

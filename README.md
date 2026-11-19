@@ -1,7 +1,7 @@
 # Authentik for NethServer 8
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Authentik Version](https://img.shields.io/badge/Authentik-2025.8.0-blue)](https://goauthentik.io/)
+[![Authentik Version](https://img.shields.io/badge/Authentik-2025.12.6-blue)](https://goauthentik.io/)
 
 A comprehensive NethServer 8 module that integrates **Authentik**, the open-source Identity Provider, into your NethServer infrastructure. Authentik provides centralized authentication, authorization, and user management with support for OAuth2, SAML, LDAP, and many other protocols.
 
@@ -284,3 +284,21 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 ---
 
 **Made with ❤️ by the Genius Dynamics Team**
+
+## Upgrade path
+
+The compatibility release on Authentik 2025.12.6 accepts upgrades from
+NS8 module 2.0.3 or later. Back up the module before switching versions.
+For an existing 2025.8 installation, install module 2.0.3 (Authentik
+2025.10.4) before moving to the 2025.12 line. Review duplicate group names
+in Authentik before moving from 2025.10 to 2025.12. The preflight reports
+duplicates without changing group or policy assignments.
+
+The module persists new files under `/data` and mounts the existing media
+volume under `/data/media`. The upgrade copies files from the previous
+containers and keeps existing volume files if their names collide. The old
+Redis data volume is retained on disk. Authentik uses PostgreSQL for its
+cache and tasks.
+
+Restore the pre-upgrade backup to go back to an earlier Authentik version.
+Reinstalling the earlier image over a migrated database is unsupported.
