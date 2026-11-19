@@ -27,7 +27,7 @@ directory_defaults = {
     directory.ADDITIONAL: "",
     directory.MANAGED: "False",
 }
-directory.save_environment({
+agent.mset_env({
     name: original_environment.get(name, default) for name, default in directory_defaults.items()
 })
 

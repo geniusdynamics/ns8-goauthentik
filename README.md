@@ -18,7 +18,7 @@ A comprehensive NethServer 8 module that integrates **Authentik**, the open-sour
 
 ### Prerequisites
 
-- NethServer 8 installed and running
+- NethServer 8 with core 3.23.0 or later
 - Administrative access to the NethServer cluster
 - A domain name for the Authentik instance
 
