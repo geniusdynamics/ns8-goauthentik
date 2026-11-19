@@ -317,3 +317,20 @@ Keep this 2026.5.8 waypoint before 2026.8. The 2026.5.7 → 2026.8.2 route had a
 
 Upgrade from module 2.3.0 (Authentik 2026.5.8) to Authentik 2026.8.5.
 The ingress remains bound to the module node loopback. Authentik trusts forwarded headers only from the loopback and the dedicated slirp4netns pod subnet.
+
+## NS8 directory login
+
+From **Settings**, select an NS8 user domain to provision a managed LDAP source
+in Authentik. Active Directory and OpenLDAP domains use the node LDAP proxy,
+with the filters and bind credentials for that domain. The deployment also
+applies updated proxy settings after NS8 reports a domain change.
+
+By default, users are matched by their directory identifiers. Choose
+**Link by username** only for a migration from the same directory after
+checking ownership of matching usernames in Authentik. The module keeps
+its managed resources separate from manually configured LDAP sources and
+gives synchronized groups distinct names. LDAP password writeback and
+deletion of users missing from the directory are disabled.
+
+Clearing the NS8 domain disables the managed source and retains imported
+identities. Locally administered login methods remain available independently.

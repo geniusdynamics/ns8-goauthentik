@@ -4,9 +4,10 @@ Library    SSHLibrary
 *** Variables ***
 ${HOST}    goauthentik.example.org
 ${SCENARIO}    install
-${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.3.0
-
-${PREVIOUS_CANDIDATE}    ghcr.io/geniusdynamics/goauthentik:authentik-2026-5
+${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.4.0
+${PREVIOUS_CANDIDATE}    ghcr.io/geniusdynamics/goauthentik:authentik-2026-8
+${NS8_DOMAIN}    authentik-ci.example.org
+${ldap_id}    ${EMPTY}
 
 *** Keywords ***
 Node command
@@ -17,6 +18,11 @@ Node command
 
 Authentik is ready
     Node command    curl -kfSs --resolve ${HOST}:443:127.0.0.1 https://${HOST}/-/health/ready/ >/dev/null
+
+Remove directory fixture
+    IF    $ldap_id
+        Node command    remove-module --no-preserve ${ldap_id}
+    END
 
 *** Test Cases ***
 Check if Authentik is installed correctly
@@ -56,6 +62,19 @@ Check if the previous release upgrades with its credentials and data
 Check if Authentik uses persistent files and no Redis container
     Node command    runagent -m ${module_id} podman exec goauthentik-app test -d /data/media
     Node command    runagent -m ${module_id} sh -c '! podman container exists goauthentik-redis'
+
+Check management of an NS8 LDAP source
+    [Teardown]    Remove directory fixture
+    ${output} =    Node command    add-module ghcr.io/nethserver/openldap:2.8.1 1
+    ${id} =    Evaluate    ast.literal_eval($output)['module_id']    ast
+    Set Suite Variable    ${ldap_id}    ${id}
+    Node command    api-cli run module/${ldap_id}/configure-module --data '{"provision":"new-domain","domain":"${NS8_DOMAIN}","admuser":"admin","admpass":"Authentik-CI-2026"}'
+    Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":"${NS8_DOMAIN}"}'
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; source=LDAPSource.objects.get(managed="io.geniusdynamics/ns8-managed-ldap"); assert source.enabled and source.check_connection()["__all__"]["status"] == "ok"' >/dev/null
+    Node command    api-cli run module/${module_id}/configure-module --data '{"host":"${HOST}","http2https":true,"lets_encrypt":false,"ldap_domain":""}'
+    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app ak shell -c 'from authentik.sources.ldap.models import LDAPSource; assert not LDAPSource.objects.get(managed="io.geniusdynamics/ns8-managed-ldap").enabled' >/dev/null
 
 Check if Authentik is removed correctly
     ${rc} =    Execute Command    remove-module --no-preserve ${module_id}
