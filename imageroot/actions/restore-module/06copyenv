@@ -20,4 +20,8 @@ for evar in [
     ]:
     agent.set_env(evar, original_environment[evar])
 
+for evar in ("AUTHENTIK_NS8_LDAP_DOMAIN", "AUTHENTIK_NS8_LDAP_MATCHING", "AUTHENTIK_NS8_LDAP_MANAGED"):
+    if evar in original_environment:
+        agent.set_env(evar, original_environment[evar])
+
 agent.dump_env()

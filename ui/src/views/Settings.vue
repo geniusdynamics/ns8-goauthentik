@@ -61,14 +61,67 @@
                 $t("settings.enabled")
               }}</template>
             </cv-toggle>
-              <!-- advanced options -->
-            <cv-accordion ref="accordion" class="maxwidth mg-bottom">
-              <cv-accordion-item :open="toggleAccordion[0]">
-                <template slot="title">{{ $t("settings.advanced") }}</template>
-                <template slot="content">
-                </template>
-              </cv-accordion-item>
-            </cv-accordion>
+            <h3 class="mg-bottom">{{ $t("settings.ldap_title") }}</h3>
+            <cv-select
+              v-model="ldapDomain"
+              :key="ldapOptionsRevision"
+              :label="$t('settings.ldap_domain')"
+              :helper-text="$t('settings.ldap_domain_help')"
+              :invalid-message="error.ldap_domain"
+              :aria-invalid="Boolean(error.ldap_domain)"
+              :disabled="loading.getConfiguration || loading.configureModule"
+              class="mg-bottom maxwidth"
+              ref="ldap_domain"
+              @change="ldapUserMatching = 'identifier'"
+            >
+              <cv-select-option value="">{{
+                $t("settings.ldap_disabled")
+              }}</cv-select-option>
+              <cv-select-option
+                v-if="
+                  ldapDomain &&
+                  !ldapDomains.some(({ name }) => name === ldapDomain)
+                "
+                :value="ldapDomain"
+                >{{
+                  $t("settings.ldap_saved_domain_unavailable", {
+                    domain: ldapDomain,
+                  })
+                }}</cv-select-option
+              >
+              <cv-select-option
+                v-for="domain in ldapDomains"
+                :key="domain.name"
+                :value="domain.name"
+                >{{ domain.name }} ({{
+                  $t("settings.ldap_schema_" + domain.schema)
+                }})</cv-select-option
+              >
+            </cv-select>
+            <template v-if="ldapDomain">
+              <cv-select
+                v-model="ldapUserMatching"
+                :label="$t('settings.ldap_user_matching')"
+                :helper-text="$t('settings.ldap_matching_help')"
+                :disabled="loading.getConfiguration || loading.configureModule"
+                class="mg-bottom maxwidth"
+              >
+                <cv-select-option value="identifier">{{
+                  $t("settings.ldap_match_identifier")
+                }}</cv-select-option>
+                <cv-select-option value="username_link">{{
+                  $t("settings.ldap_match_username")
+                }}</cv-select-option>
+              </cv-select>
+              <NsInlineNotification
+                v-if="ldapUserMatching === 'username_link'"
+                kind="warning"
+                :title="$t('settings.ldap_link_warning')"
+                :description="$t('settings.ldap_link_warning_detail')"
+                :showCloseButton="false"
+                class="mg-bottom maxwidth"
+              />
+            </template>
             <cv-row v-if="error.configureModule">
               <cv-column>
                 <NsInlineNotification
@@ -125,6 +178,10 @@ export default {
       host: "",
       isLetsEncryptEnabled: false,
       isHttpToHttpsEnabled: true,
+      ldapDomain: "",
+      ldapUserMatching: "identifier",
+      ldapDomains: [],
+      ldapOptionsRevision: 0,
       loading: {
         getConfiguration: false,
         configureModule: false,
@@ -135,6 +192,7 @@ export default {
         host: "",
         lets_encrypt: "",
         http2https: "",
+        ldap_domain: "",
       },
     };
   },
@@ -202,6 +260,10 @@ export default {
       this.host = config.host;
       this.isLetsEncryptEnabled = config.lets_encrypt;
       this.isHttpToHttpsEnabled = config.http2https;
+      this.ldapDomain = config.ldap_domain || "";
+      this.ldapUserMatching = config.ldap_user_matching || "identifier";
+      this.ldapDomains = config.ldap_domains || [];
+      this.ldapOptionsRevision += 1;
 
       this.loading.getConfiguration = false;
       this.focusElement("host");
@@ -271,6 +333,8 @@ export default {
             host: this.host,
             lets_encrypt: this.isLetsEncryptEnabled,
             http2https: this.isHttpToHttpsEnabled,
+            ldap_domain: this.ldapDomain,
+            ldap_user_matching: this.ldapUserMatching,
           },
           extra: {
             title: this.$t("settings.instance_configuration", {
