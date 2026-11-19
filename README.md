@@ -326,7 +326,7 @@ with the filters and bind credentials for that domain. The deployment also
 applies updated proxy settings after NS8 reports a domain change.
 
 By default, users are matched by their directory identifiers. Choose
-**Link by username** only for a migration from the same directory after
+**Link by matching username** only for a migration from the same directory after
 checking ownership of matching usernames in Authentik. The module keeps
 its managed resources separate from manually configured LDAP sources and
 gives synchronized groups distinct names. LDAP password writeback and
@@ -344,9 +344,9 @@ keys should stay as they are. The change is how users sign in to Authentik.
 
 | Current setup | Migration path |
 | --- | --- |
-| LDAP or Samba AD configured in Authentik and backed by the same directory as the NS8 domain | Verify that the NS8 directory maps each username to the same person. Use **Link by username** to attach the new source to existing Authentik users. Keep the old source available until you finish validation. |
-| Local Authentik accounts | Keep a local administrator who is independent of LDAP and confirm that account can sign in. If you want existing users to move to LDAP, use **Link by username** only after verifying every overlapping username belongs to the same person. |
-| A different directory, an external identity source, or uncertain username ownership | Keep the current sign-in path. Use **Match by directory identifier** for new, distinct users. Resolve username collisions or establish verified account links before moving existing users. Matching names or email addresses alone is insufficient evidence of ownership. |
+| LDAP or Samba AD configured in Authentik and backed by the same directory as the NS8 domain | Verify that the NS8 directory maps each username to the same person. Use **Link by matching username** to attach the new source to existing Authentik users. Keep the old source available until you finish validation. |
+| Local Authentik accounts | Keep a local administrator who is independent of LDAP and confirm that account can sign in. If you want existing users to move to LDAP, use **Link by matching username** only after verifying every overlapping username belongs to the same person. |
+| A different directory, an external identity source, or uncertain username ownership | Keep the current sign-in path. Use **Use directory identifiers** for new, distinct users. Resolve username collisions or establish verified account links before moving existing users. Matching names or email addresses alone is insufficient evidence of ownership. |
 
 #### Prepare and validate the switch
 
