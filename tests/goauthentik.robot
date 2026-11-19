@@ -5,7 +5,7 @@ Library    SSHLibrary
 ${HOST}    goauthentik.example.org
 ${SCENARIO}    install
 ${PREVIOUS_IMAGE}    ghcr.io/geniusdynamics/goauthentik:2.1.0
-@{WAYPOINTS}    2.1.1,authentik-2025-12-compat    2.2.0,authentik-2026-2    2.3.0,authentik-2026-5
+@{WAYPOINTS}    2.1.1,authentik-2025-12-compat    2.2.0,authentik-2026-2    2.3.0,authentik-2026-5    2.4.0,2.4.0
 
 *** Keywords ***
 Node command
@@ -62,6 +62,10 @@ Check if the previous release upgrades with its credentials and data
 Check if Authentik uses persistent files and no Redis container
     Node command    runagent -m ${module_id} podman exec goauthentik-app test -d /data/media
     Node command    runagent -m ${module_id} sh -c '! podman container exists goauthentik-redis'
+
+Check if the Authentik worker is healthy
+    Wait Until Keyword Succeeds    3min    5s    Node command
+    ...    runagent -m ${module_id} podman exec goauthentik-app-worker ak healthcheck >/dev/null
 
 Check if Authentik is removed correctly
     ${rc} =    Execute Command    remove-module --no-preserve ${module_id}
