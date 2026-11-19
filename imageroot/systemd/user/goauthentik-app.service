@@ -10,7 +10,7 @@
 [Unit]
 Description=Podman goauthentik-app.service
 BindsTo=goauthentik.service
-After=goauthentik-redis.service goauthentik-pgsql.service
+After=goauthentik-pgsql.service
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
 EnvironmentFile=%S/state/environment
@@ -18,6 +18,7 @@ EnvironmentFile=%S/state/database.env
 WorkingDirectory=%S/state
 Restart=always
 ExecStartPre=/bin/rm -f %t/goauthentik-app.pid %t/goauthentik-app.ctr-id
+ExecStartPre=/usr/local/bin/runagent check-goauthentik-database
 ExecStartPre=/usr/local/bin/runagent discover-smarthost
 ExecStart=/usr/bin/podman run \
     --detach \
@@ -31,7 +32,8 @@ ExecStart=/usr/bin/podman run \
     --env-file=goauthentik-db.env \
     --env-file=goauthentik.env \
     --env=goauthentik_* \
-    --volume=goauthentik-media:/media:Z \
+    --volume=goauthentik-files:/data:Z \
+    --volume=goauthentik-media:/data/media:Z \
     --volume=custom-templates:/templates:Z \
     ${SERVER_IMAGE} server
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/goauthentik-app.ctr-id -t 10
