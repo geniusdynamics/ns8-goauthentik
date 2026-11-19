@@ -325,6 +325,20 @@ in Authentik. Active Directory and OpenLDAP domains use the node LDAP proxy,
 with the filters and bind credentials for that domain. The deployment also
 applies updated proxy settings after NS8 reports a domain change.
 
+One user domain is enough to get started. Choose **Additional user domains**
+to select more OpenLDAP or Active Directory domains already configured in NS8.
+The module creates a separate managed LDAP source for each domain. Use
+distinct usernames and LDAP naming contexts across directories. Authentik
+has one username namespace, and a duplicate username can prevent an import.
+The module checks for overlapping configured search bases when enabling
+multiple domains, including enabled sources added in Authentik.
+
+With multiple domains selected, imports match by directory identifier.
+Existing links are retained. Username linking is available with one selected
+domain for migrations where account ownership has been verified. Set up any
+other LDAP connections directly in the Authentik interface. Removing a
+selection disables its managed source and keeps its imported users and groups.
+
 By default, users are matched by their directory identifiers. Choose
 **Link by matching username** only for a migration from the same directory after
 checking ownership of matching usernames in Authentik. The module keeps
@@ -332,7 +346,7 @@ its managed resources separate from manually configured LDAP sources and
 gives synchronized groups distinct names. LDAP password writeback and
 deletion of users missing from the directory are disabled.
 
-Clearing the NS8 domain disables the managed source and retains imported
+Clearing the primary NS8 domain disables all NS8-managed sources and retains imported
 identities. Locally administered login methods remain available independently.
 
 ### Migrate an existing Authentik setup to an NS8 directory

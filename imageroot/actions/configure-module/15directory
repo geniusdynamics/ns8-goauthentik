@@ -4,20 +4,13 @@
 import json
 import sys
 
-import agent
 import authentik_directory as directory
 
-request = json.load(sys.stdin)
-old, matching, managed = directory.settings()
-domain = request.get("ldap_domain", old)
-matching = request.get("ldap_user_matching", matching)
-if domain and domain not in {entry["name"] for entry in directory.domains()}:
-    agent.set_status("validation-failed")
-    json.dump([{"field": "ldap_domain", "parameter": "ldap_domain", "value": "",
-                "error": "ldap_domain_unavailable"}], sys.stdout)
-    sys.exit(3)
-if domain or managed:
-    agent.bind_user_domains([domain] if domain else [], check=True)
-    agent.set_env(directory.DOMAIN, domain)
-    agent.set_env(directory.MATCHING, matching)
-    agent.set_env(directory.MANAGED, "True")
+domain, matching, additional, _ = directory.request_settings(json.load(sys.stdin))
+selected = ([domain] if domain else []) + additional
+if len(selected) != len(set(selected)) or (additional and not domain):
+    directory.validation_failed("ldap_domains_distinct")
+if selected and not set(selected) <= {entry["name"] for entry in directory.domains()}:
+    directory.validation_failed("ldap_domain_unavailable")
+if additional and matching != "identifier":
+    directory.validation_failed("ldap_multi_requires_identifiers")
